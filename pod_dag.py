@@ -13,8 +13,6 @@ default_args = {
     "retries": 1
 }
 
-namespace = conf.get("kubernetes", "NAMESPACE")
-
 def helloworld1():
     print('Hello World - 1')
 
@@ -37,7 +35,7 @@ with DAG(dag_id="pod",
              python_callable=helloworld2)
          
          k = KubernetesPodOperator(
-             namespace=namespace,
+             namespace="airflow",
              name="hello-dry-run",
              image="hello-world",
              cmds=["bash", "-cx"],
