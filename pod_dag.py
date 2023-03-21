@@ -3,6 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 import time
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.configuration import conf
 
 default_args = {
     "owner": "airflow",
@@ -12,6 +13,8 @@ default_args = {
     "email_on_retry": False,
     "retries": 1
 }
+
+namespace = conf.get("kubernetes", "NAMESPACE")
 
 def helloworld1():
     print('Hello World - 1')
@@ -35,16 +38,14 @@ with DAG(dag_id="pod",
              python_callable=helloworld2)
          
          k = KubernetesPodOperator(
-             namespace="airflow",
-             name="hello-dry-run",
+             namespace=namespace,
+             name="task-pod",
+             task_id="task-pod",
              image="hello-world",
-             cmds=["bash", "-cx"],
-             arguments=["echo", "10"],
              labels={"<pod-label>": "<label-name>"},
-             task_id="task-one",
              is_delete_operator_pod=True,
              get_logs=True,
          )
 
-         task1 >> task2 >> k
+         k
 
