@@ -1,35 +1,76 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+"""Example DAG demonstrating the usage of the BashOperator."""
+from __future__ import annotations
+
+import datetime
+
+import pendulum
+
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
-from airflow.models import Variable
-from modelTestCI.dags.helper_functions.cpu_stress_time import execute
+from airflow.operators.bash import BashOperator
+from airflow.operators.empty import EmptyOperator
 
-default_args = {
-    'owner': 'Felipe Test',
-    'depends_on_past': False,
-    'start_date': days_ago(0), 
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 2,
-}
-
-resource_config = {"KubernetesExecutor": {"request_memory": "200Mi", 
-                                          "limit_memory": "200Mi", 
-                                          "request_cpu": "200m", 
-                                          "limit_cpu": "200m"}}
-
-with DAG(dag_id='std_simple_sample', schedule_interval=None, 
-         tags=['analytics'], default_args=default_args) as dag:
-    
-    task = PythonOperator(
-        task_id='std_simple_sample_task',
-        python_callable=execute,
-        op_args=[20,timetask],
-        start_date=days_ago(0),
-        owner='airflow',
-        executor_config = resource_config
+with DAG(
+    dag_id="example_bash_operator",
+    schedule="0 0 * * *",
+    start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
+    catchup=False,
+    dagrun_timeout=datetime.timedelta(minutes=60),
+    tags=["example", "example2"],
+    params={"example_key": "example_value"},
+) as dag:
+[docs]    run_this_last = EmptyOperator(
+        task_id="run_this_last",
     )
 
-    task
-    
+    # [START howto_operator_bash]
+    run_this = BashOperator(
+        task_id="run_after_loop",
+        bash_command="echo 1",
+    )
+    # [END howto_operator_bash]
+
+    run_this >> run_this_last
+
+    for i in range(3):
+        task = BashOperator(
+            task_id="runme_" + str(i),
+            bash_command='echo "{{ task_instance_key_str }}" && sleep 1',
+        )
+        task >> run_this
+
+    # [START howto_operator_bash_template]
+    also_run_this = BashOperator(
+        task_id="also_run_this",
+        bash_command='echo "ti_key={{ task_instance_key_str }}"',
+    )
+    # [END howto_operator_bash_template]
+    also_run_this >> run_this_last
+
+# [START howto_operator_bash_skip]
+[docs]this_will_skip = BashOperator(
+    task_id="this_will_skip",
+    bash_command='echo "hello world"; exit 99;',
+    dag=dag,
+)
+# [END howto_operator_bash_skip]
+this_will_skip >> run_this_last
+
+if __name__ == "__main__":
+    dag.test()
