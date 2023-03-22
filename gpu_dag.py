@@ -49,7 +49,7 @@ with DAG(dag_id="autodock_pod33", start_date=datetime(2021,1,1), schedule=None, 
         namespace=namespace,
         labels={"foo": "bar"},
         task_id="task_3",
-        full_pod_spec=full_pod_spec
+        full_pod_spec=full_pod_spec,
         is_delete_operator_pod=False,
         get_logs=True,
     )
