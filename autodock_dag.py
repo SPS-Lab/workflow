@@ -53,7 +53,7 @@ with DAG(dag_id="autodock_dag",
         namespace=namespace,
         labels={"foo": "bar"},
         task_id="docking_task",
-        full_pod_spec=full_pod_spec
+        full_pod_spec=full_pod_spec,
         is_delete_operator_pod=False,
         get_logs=True,
     )
