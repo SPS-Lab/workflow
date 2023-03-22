@@ -39,13 +39,16 @@ with DAG(dag_id="pod",
          
          k = KubernetesPodOperator(
              namespace=namespace,
-             name="task-pod",
-             task_id="task-pod",
-             image="hello-world",
-             labels={"<pod-label>": "<label-name>"},
-             is_delete_operator_pod=True,
-             get_logs=True,
+             image="python",
+             cmds=["python", "-c"],
+             arguments=["print('HELLO')"],
+             labels={"foo": "bar"},
+             image_pull_policy="Always",
+             name="pod_task",
+             task_id="task_3",
+             is_delete_operator_pod=False,
+             get_logs=True
          )
 
-         k
+         task1 >> task2 >> k
 
