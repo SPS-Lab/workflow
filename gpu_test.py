@@ -28,7 +28,6 @@ def helloworld2():
 
 from datetime import datetime
 
-@task(task_id='check_gpu')
 def start_gpu_container(**kwargs):
 
     # get the docker params from the environment
@@ -58,6 +57,8 @@ with DAG(dag_id="autodock_pod",
          catchup=False,
          default_args=default_args) as dag:
     
-    check_gpu = start_gpu_container()
+    task1 = PythonOperator(
+             task_id="gpu_test",
+             python_callable=start_gpu_container)
 
-check_gpu
+task1
