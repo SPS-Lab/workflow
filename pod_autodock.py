@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.configuration import conf
-from airflow.contrib.kubernetes.pod import Resources
 
 default_args = {
     "owner": "airflow",
