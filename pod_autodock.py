@@ -30,14 +30,6 @@ with DAG(dag_id="autodock_pod",
          schedule=None,
          catchup=False,
          default_args=default_args) as dag:
-
-         task1 = PythonOperator(
-             task_id="hello1",
-             python_callable=helloworld1)
-
-         task2 = PythonOperator(
-             task_id="hello2",
-             python_callable=helloworld2)
          
          k = KubernetesPodOperator(
              namespace=namespace,
@@ -49,8 +41,8 @@ with DAG(dag_id="autodock_pod",
              task_id="task_3",
              is_delete_operator_pod=False,
              get_logs=True,
-             resources=k8s.V1ResourceRequirements(
-                limits={'nvidia.com/gpu': '1'}
+             container_resources=k8s.V1ResourceRequirements(
+                limits={'nvidia.com/gpu': '1', 'gpu': '1'}
              ),
              env_vars={
                     "NVIDIA_VISIBLE_DEVICES": "all",
@@ -58,5 +50,5 @@ with DAG(dag_id="autodock_pod",
                 }
          )
 
-         task1 >> task2 >> k
+         k
 
