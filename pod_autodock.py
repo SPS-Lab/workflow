@@ -53,7 +53,11 @@ with DAG(dag_id="autodock_pod",
                 limits={
                     'nvidia.com/gpu': 1
                 },
-             )
+             ),
+             env_vars={
+                    "NVIDIA_VISIBLE_DEVICES": "all",
+                    "NVIDIA_DRIVER_CAPABALITIES": "compute,utility"
+                }
          )
 
          task1 >> task2 >> k
