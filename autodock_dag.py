@@ -31,7 +31,7 @@ with DAG(dag_id="autodock_dag",
          catchup=False,
          default_args=default_args) as dag:
  
-    metadata = k8s.V1ObjectMeta(name="autodock_gpu")
+    metadata = k8s.V1ObjectMeta(name="autodock-gpu")
     container = k8s.V1Container(
         image="raijenki/autodock:1.5.3-gpu2",
         command=["/bin/sh", "-c", "/home/AutoDock-GPU/bin/./autodock_gpu_64wi --ffile /home/AutoDock-GPU/input/1stp/derived/1stp_protein.maps.fld --lfile /home/AutoDock-GPU/input/1stp/derived/1stp_ligand.pdbqt"],
