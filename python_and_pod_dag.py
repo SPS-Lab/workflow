@@ -23,7 +23,7 @@ def helloworld2():
     print("The time of code execution begin is : ", time.ctime())
     print('Hello World - 2')
 
-with DAG(dag_id="pod",
+with DAG(dag_id="python_and_pod_dag",
          start_date=datetime(2021,1,1),
          schedule=None,
          catchup=False,
