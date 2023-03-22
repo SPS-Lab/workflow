@@ -5,6 +5,7 @@ import time
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.configuration import conf
 from kubernetes.client import models as k8s
+import docker
 
 default_args = {
     "owner": "airflow",
