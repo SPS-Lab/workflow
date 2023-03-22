@@ -38,7 +38,7 @@ from airflow.operators.python import PythonOperator
 
 # [START instantiate_dag]
 with DAG(
-    "AutoDock_dag",
+    "AutoDock_Dummy_DAG",
     # [START default_args]
     # These args will get passed on to each operator
     # You can override them on a per-task basis during operator initialization
