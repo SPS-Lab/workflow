@@ -4,6 +4,7 @@ from datetime import datetime
 import time
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.configuration import conf
+from kubernetes.client import models as k8s
 
 default_args = {
     "owner": "airflow",
@@ -47,7 +48,12 @@ with DAG(dag_id="autodock_pod",
              name="pod_task",
              task_id="task_3",
              is_delete_operator_pod=False,
-             get_logs=True
+             get_logs=True,
+             container_resources=k8s.V1ResourceRequirements(
+                limits={
+                    'nvidia.com/gpu': 1
+                },
+             )
          )
 
          task1 >> task2 >> k
