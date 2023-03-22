@@ -42,6 +42,7 @@ with DAG(dag_id="autodock_pod",
              is_delete_operator_pod=False,
              get_logs=True,
              container_resources=k8s.V1ResourceRequirements(
+                requests={"cpu": "1600m","memory":"5000M","nvidia.com/gpu": "1"},
                 limits={"nvidia.com/gpu": "1"}
              ),
              env_vars={
