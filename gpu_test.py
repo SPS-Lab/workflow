@@ -5,7 +5,6 @@ import time
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.configuration import conf
 from kubernetes.client import models as k8s
-import docker
 
 default_args = {
     "owner": "airflow",
@@ -29,6 +28,7 @@ def helloworld2():
 
 from datetime import datetime
 
+@task(task_id='check_gpu')
 def start_gpu_container(**kwargs):
 
     # get the docker params from the environment
@@ -52,14 +52,12 @@ def start_gpu_container(**kwargs):
     return str(response)
 
     
-with DAG(dag_id="gpu_test",
+with DAG(dag_id="autodock_pod",
          start_date=datetime(2021,1,1),
          schedule=None,
          catchup=False,
          default_args=default_args) as dag:
     
-    task1 = PythonOperator(
-             task_id="gpu_test",
-             python_callable=start_gpu_container)
+    check_gpu = start_gpu_container()
 
-task1
+check_gpu
