@@ -51,7 +51,7 @@ def start_gpu_container(**kwargs):
     return str(response)
 
     
-with DAG(dag_id="autodock_pod",
+with DAG(dag_id="gpu_test",
          start_date=datetime(2021,1,1),
          schedule=None,
          catchup=False,
