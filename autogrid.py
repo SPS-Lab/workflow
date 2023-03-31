@@ -2,8 +2,15 @@ from airflow import DAG
 from airflow.models.param import Param
 from airflow.decorators import dag, task
 from airflow.configuration import conf
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from datetime import datetime
+
+from kubernetes.client import models as k8s
+
+
+VOLUME_KEY = 'data-volume'
+MOUNT_PATH = '/data'
 
 default_args = {}
 namespace = conf.get('kubernetes', 'NAMESPACE')
@@ -21,6 +28,33 @@ def prepare_grid():
      catchup=False,
      default_args=default_args)
 def autogrid():
-    prepare_grid()
+
+    medadata = k8s.V1ObjectMeta(name='autodock-gpu')
+
+    volume = k8s.V1Volume(
+        name=VOLUME_KEY,
+        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=VOLUME_KEY)
+    )
+    volume_mounts = [k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)]
+
+    container = k8s.V1Container(
+            name='autodock-container',
+            image='gabinsc/autodock-gpu:1.5.3',
+            volume_mounts=volume_mounts,
+            image_pull_policy='Always',
+             working_dir=MOUNT_PATH,
+            command=['/autodock/autogrid4', '-p', 'grid.gpf'],
+    )
+    spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
+    full_pod_psec = k8s.V1Pod(metadata=metadata,spec=spec)
+
+    k = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='autogrid',
+            full_pod_spec=k8s.V1Pod(metadata=metadata,spec=spec),
+            get_logs=True
+    )
+
+    k
 
 autogrid()
