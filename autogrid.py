@@ -23,4 +23,4 @@ def prepare_grid():
 def autogrid():
     prepare_grid()
 
-autodock()
+autogrid()
