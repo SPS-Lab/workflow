@@ -20,15 +20,12 @@ AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 default_args = {}
 namespace = conf.get('kubernetes', 'NAMESPACE')
 
-@task
-def prepare_grid():
-    return None
 
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
      default_args=default_args)
-def create_energy_grid(): 
+def autodock(): 
     import os.path
 
     metadata = k8s.V1ObjectMeta(name='autodock-gpu')
@@ -50,13 +47,13 @@ def create_energy_grid():
     spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
     full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
 
-    k = KubernetesPodOperator(
+    prepare_receptor = KubernetesPodOperator(
             namespace=namespace,
             task_id='autogrid',
             full_pod_spec=full_pod_spec,
             get_logs=True
     )
 
-    k
+    prepare_receptor
 
-create_energy_grid()
+autodock()
