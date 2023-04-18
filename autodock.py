@@ -8,7 +8,7 @@ from datetime import datetime
 
 from kubernetes.client import models as k8s
 
-VOLUME_KEY = 'pv-autodock'
+VOLUME_KEY = 'pvc-autodock'
 MOUNT_PATH = '/data'
 
 # Parameters 
