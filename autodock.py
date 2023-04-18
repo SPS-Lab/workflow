@@ -8,7 +8,8 @@ from datetime import datetime
 
 from kubernetes.client import models as k8s
 
-VOLUME_KEY = 'pv-autodock'
+PVC_NAME = 'pvc-autodock'
+PV_NAME  = 'pv-autodock'
 MOUNT_PATH = '/data'
 
 # Parameters 
@@ -30,10 +31,10 @@ def autodock():
     metadata = k8s.V1ObjectMeta(name='autodock-gpu')
 
     volume = k8s.V1Volume(
-        name=VOLUME_KEY,
-        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=VOLUME_KEY)
+        name=PV_NAME,
+        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME)
     )
-    volume_mounts = [k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)]
+    volume_mounts = [k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)]
 
     container = k8s.V1Container(
             name='autodock-container',
