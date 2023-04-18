@@ -35,7 +35,7 @@ def prepare_grid():
 def autogrid():
     import os.path
 
-    medadata = k8s.V1ObjectMeta(name='autodock-gpu')
+    metadata = k8s.V1ObjectMeta(name='autodock-gpu')
 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
