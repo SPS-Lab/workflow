@@ -9,7 +9,7 @@ from datetime import datetime
 from kubernetes.client import models as k8s
 
 
-VOLUME_KEY = 'data-volume'
+VOLUME_KEY = 'datavolume'
 MOUNT_PATH = '/data'
 
 # Parameters 
