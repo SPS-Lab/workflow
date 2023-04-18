@@ -21,10 +21,6 @@ default_args = {}
 namespace = conf.get('kubernetes', 'NAMESPACE')
 
 @task
-def detect_receptor_types():
-    pass
-
-@task
 def prepare_grid():
     return None
 
@@ -32,7 +28,7 @@ def prepare_grid():
      schedule=None,
      catchup=False,
      default_args=default_args)
-def autogrid():
+def create_energy_grid(): 
     import os.path
 
     metadata = k8s.V1ObjectMeta(name='autodock-gpu')
@@ -57,7 +53,7 @@ def autogrid():
     k = KubernetesPodOperator(
             namespace=namespace,
             task_id='autogrid',
-            full_pod_spec=k8s.V1Pod(metadata=metadata,spec=spec),
+            full_pod_spec=full_pod_spec,
             get_logs=True
     )
 
