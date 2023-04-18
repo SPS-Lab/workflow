@@ -12,6 +12,11 @@ from kubernetes.client import models as k8s
 VOLUME_KEY = 'data-volume'
 MOUNT_PATH = '/data'
 
+# Parameters 
+# TODO: replace with DAG parameters
+PROTEIN_PDBID = '7cpa'
+AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
+
 default_args = {}
 namespace = conf.get('kubernetes', 'NAMESPACE')
 
@@ -28,6 +33,7 @@ def prepare_grid():
      catchup=False,
      default_args=default_args)
 def autogrid():
+    import os.path
 
     medadata = k8s.V1ObjectMeta(name='autodock-gpu')
 
@@ -42,8 +48,8 @@ def autogrid():
             image='gabinsc/autodock-gpu:1.5.3',
             volume_mounts=volume_mounts,
             image_pull_policy='Always',
-             working_dir=MOUNT_PATH,
-            command=['/autodock/autogrid4', '-p', 'grid.gpf'],
+            working_dir=MOUNT_PATH, # work in the shared directory
+            command=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID]
     )
     spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
     full_pod_psec = k8s.V1Pod(metadata=metadata,spec=spec)
