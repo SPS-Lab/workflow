@@ -59,4 +59,4 @@ def create_energy_grid():
 
     k
 
-autogrid()
+create_energy_grid()
