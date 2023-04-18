@@ -48,7 +48,7 @@ def create_energy_grid():
             command=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID]
     )
     spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
-    full_pod_psec = k8s.V1Pod(metadata=metadata,spec=spec)
+    full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
 
     k = KubernetesPodOperator(
             namespace=namespace,
