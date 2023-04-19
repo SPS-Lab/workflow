@@ -38,7 +38,6 @@ def autodock():
     container = k8s.V1Container(
             name='autodock-container',
             image='gabinsc/autodock-gpu:1.5.3',
-            volume_mounts=[volume_mount],
             image_pull_policy='Always',
             working_dir=MOUNT_PATH, # work in the shared directory
             command=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID]
