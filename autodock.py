@@ -43,10 +43,8 @@ def autodock():
         volume_mounts=[volume_mount],
         image_pull_policy='Always',
     )
-    full_pod_spec = k8s.V1PodSpec(
-        containers=[container],
-        volumes=[volume],
-    )
+    pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
+    full_pod_spec = k8s.V1Pod(spec=pod_spec)
 
     prepare_receptor = KubernetesPodOperator(
         namespace=namespace,
