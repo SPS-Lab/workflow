@@ -60,9 +60,14 @@ def autodock():
         cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
     )
 
+
+    # redo pod specs for NVIDIA
+    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
+    full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
+
     docking = KubernetesPodOperator(
         task_id='docking',
-        full_pod_spec=full_pod_spec,
+        full_pod_spec=full_pod_spec_gpu,
 
         container_resources=k8s.V1ResourceRequirements(
             requests={"cpu": "1600m","memory":"5000M","nvidia.com/gpu": "1"},
