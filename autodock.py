@@ -46,7 +46,7 @@ def autodock():
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
     full_pod_spec = k8s.V1Pod(spec=pod_spec)
 
-    prepare_receptor = KubernetesPodOperator(
+    """prepare_receptor = KubernetesPodOperator(
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
@@ -58,7 +58,7 @@ def autodock():
         full_pod_spec=full_pod_spec,
 
         cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
-    )
+    )"""
 
     # redo pod specs for NVIDIA
     container_gpu = k8s.V1Container(
@@ -70,7 +70,7 @@ def autodock():
         image_pull_policy='Always',
 
         resources=k8s.V1ResourceRequirements(
-            requests={"nvidia.com/gpu": "1"},
+            requests={"cpu": "1600m","memory":"5000M","nvidia.com/gpu": "1"},
             limits={"nvidia.com/gpu": "1"}
         ),
         env=[
