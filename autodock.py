@@ -35,22 +35,28 @@ def autodock():
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)
 
-    container = k8s.V1Container(
+    """container = k8s.V1Container(
             name='autodock-container',
-            image='gabinsc/autodock-gpu:1.5.3',
+            # image='gabinsc/autodock-gpu:1.5.3',
             image_pull_policy='Always',
             working_dir=MOUNT_PATH, # work in the shared directory
             command=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID]
-    )
-    spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
-    full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
+    )"""
+    # spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
+    # full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
 
     prepare_receptor = KubernetesPodOperator(
             namespace=namespace,
-            task_id='autogrid',
-            volumes=[volume],
+            task_id='prepare_receptor',
+
+            image='gabinsc/autodock-gpu:1.5.3',
+            cmds=['sh', '-c'],
+            arguments=[f'cd {MOUNT_PATH} && /autodock/scripts/1_fetch_prepare_protein.sh {PROTEIN_PDBID}'],
+
             volume_mounts=[volume_mount],
-            full_pod_spec=full_pod_spec,
+            volumes=[volume],
+            image_pull_policy='Always',
+            
             get_logs=True
     )
 
