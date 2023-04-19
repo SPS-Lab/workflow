@@ -39,8 +39,7 @@ def autodock():
 
             image='gabinsc/autodock-gpu:1.5.3',
             cmds=['sh', '-c'],
-            arguments=[f'cd {MOUNT_PATH} && ls'],
-            #arguments=[f'cd {MOUNT_PATH} && /autodock/scripts/1_fetch_prepare_protein.sh {PROTEIN_PDBID}'],
+            arguments=[f'cd {MOUNT_PATH} && /autodock/scripts/1_fetch_prepare_protein.sh {PROTEIN_PDBID}'],
 
             volume_mounts=[volume_mount],
             volumes=[volume],
