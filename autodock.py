@@ -61,21 +61,29 @@ def autodock():
     )
 
     # redo pod specs for NVIDIA
-    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
+    container_gpu = k8s.V1Container(
+        name='autodock-gpu-container',
+        image='gabinsc/autodock-gpu:1.5.3',
+        working_dir=MOUNT_PATH,
+
+        volume_mounts=[volume_mount],
+        image_pull_policy='Always',
+
+        resources=k8s.V1ResourceRequirements(
+            requests={"nvidia.com/gpu": "1"},
+            limits={"nvidia.com/gpu": "1"}
+        ),
+        env=[
+            k8s.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="all"),
+            k8s.V1EnvVar(name="NVIDIA_DRIVER_CAPABALITIES", value="compute,utility")
+        ],
+    )
+    pod_spec_gpu      = k8s.V1PodSpec(containers=[container_gpu], volumes=[volume], runtime_class_name='nvidia')
     full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
 
     docking = KubernetesPodOperator(
         task_id='docking',
         full_pod_spec=full_pod_spec_gpu,
-
-        container_resources=k8s.V1ResourceRequirements(
-            requests={"nvidia.com/gpu": "1"},
-            limits={"nvidia.com/gpu": "1"}
-        ),
-        env_vars=[
-            k8s.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="all"),
-            k8s.V1EnvVar(name="NVIDIA_DRIVER_CAPABALITIES", value="compute,utility")
-        ],
 
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
     )
@@ -87,6 +95,7 @@ def autodock():
         cmds=['/bin/sh', '-c', 'echo postprocess!!!'],
     )
 
-    [prepare_receptor, prepare_ligands] >> docking >> postprocessing
+    # [prepare_receptor, prepare_ligands] >> 
+    docking >> postprocessing
 
 autodock()
