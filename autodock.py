@@ -19,7 +19,7 @@ AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 params = {
     'pdbid': '7cpa'
 }
-namespace = conf.get('kubernetes', 'NAMESPACE')
+namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
