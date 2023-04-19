@@ -34,19 +34,28 @@ def autodock():
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
 
-    prepare_receptor = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='prepare_receptor',
 
-            image='gabinsc/autodock-gpu:1.5.3',
-            cmds=['sh', '-c'],
-            arguments=['cd ' + MOUNT_PATH + ' && /autodock/scripts/1a_fetch_prepare_protein.sh {{ params.pdbid }}'],
+    container = k8s.V1Container(
+        name='autodock-container',
+        image='gabinsc/autodock-gpu:1.5.3',
+        working_dir=MOUNT_PATH,
 
-            volume_mounts=[volume_mount],
-            volumes=[volume],
-            image_pull_policy='Always',
+        volume_mounts=[volume_mount],
+        image_pull_policy='Always',
     )
-    
+    full_pod_spec = k8s.V1PodSpec(
+        containers=[container],
+        volumes=[volume],
+    )
+
+    prepare_receptor = KubernetesPodOperator(
+        namespace=namespace,
+        task_id='prepare_receptor',
+        full_pod_spec=full_pod_spec,
+
+        cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh {{ params.pdbid }}'],
+    )
+
     prepare_receptor
 
 autodock()
