@@ -38,7 +38,6 @@ def autodock():
     container = k8s.V1Container(
             name='autodock-container',
             image='gabinsc/autodock-gpu:1.5.3',
-            volumes=[volume],
             volume_mounts=[volume_mount],
             image_pull_policy='Always',
             working_dir=MOUNT_PATH, # work in the shared directory
@@ -48,10 +47,17 @@ def autodock():
     full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
 
     prepare_receptor = KubernetesPodOperator(
+            task_id='prepare_receptor',
+
             namespace=namespace,
-            task_id='autogrid',
-            full_pod_spec=full_pod_spec,
-            get_logs=True
+            name='autodock-pod',
+            image='gabinsc/autodock-gpu:1.5.3',
+            cmds=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID],
+            
+            volumes=[volume],
+            volume_mounts=[volume_mount],
+            image_pull_policy='Always',
+            working_dir=MOUNT_PATH,
     )
 
     prepare_receptor
