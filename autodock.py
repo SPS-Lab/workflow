@@ -9,8 +9,8 @@ from datetime import datetime
 from kubernetes.client import models as k8s
 
 PVC_NAME = 'pvc-autodock'
-VOLUME_KEY  = 'volume-autodock'
 MOUNT_PATH = '/data'
+VOLUME_KEY  = 'volume-autodock'
 
 # Parameters 
 # TODO: replace with DAG parameters
@@ -35,7 +35,7 @@ def autodock():
 
     prepare_receptor = KubernetesPodOperator(
             namespace=namespace,
-            task_id='prepare_receptor',
+            #task_id='prepare_receptor',
 
             image='gabinsc/autodock-gpu:1.5.3',
             cmds=['sh', '-c'],
@@ -45,8 +45,6 @@ def autodock():
             volumes=[volume],
             image_pull_policy='Always',
     )
-
-
 
     prepare_receptor
 
