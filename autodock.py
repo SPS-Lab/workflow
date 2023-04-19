@@ -64,7 +64,7 @@ def autodock():
         task_id='docking',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/bin/sh', '-c', 'echo docking!!!'],
+        cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
     )
 
     postprocessing = KubernetesPodOperator(
