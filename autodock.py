@@ -18,7 +18,7 @@ PROTEIN_PDBID = '7cpa'
 AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 
 default_args = {}
-namespace = 'default' # conf.get('kubernetes', 'NAMESPACE')
+namespace = conf.get('kubernetes', 'NAMESPACE')
 
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
@@ -45,6 +45,8 @@ def autodock():
     )
     spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
     full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
+
+    print('BARA BRA', namespace)
 
     prepare_receptor = KubernetesPodOperator(
             task_id='prepare_receptor',
