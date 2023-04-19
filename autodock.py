@@ -20,7 +20,6 @@ AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 default_args = {}
 namespace = conf.get('kubernetes', 'NAMESPACE')
 
-
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
@@ -32,14 +31,14 @@ def autodock():
 
     volume = k8s.V1Volume(
         name=PV_NAME,
-        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME)
+        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PV_NAME)
     )
-    volume_mounts = [k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)]
+    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)
 
     container = k8s.V1Container(
             name='autodock-container',
             image='gabinsc/autodock-gpu:1.5.3',
-            volume_mounts=volume_mounts,
+            volume_mounts=[volume_mount],
             image_pull_policy='Always',
             working_dir=MOUNT_PATH, # work in the shared directory
             command=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID]
