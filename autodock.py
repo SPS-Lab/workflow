@@ -57,7 +57,7 @@ def autodock():
             volumes=[volume],
             volume_mounts=[volume_mount],
             image_pull_policy='Always',
-            working_dir=MOUNT_PATH,
+            # working_dir=MOUNT_PATH,
     )
 
     prepare_receptor
