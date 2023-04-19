@@ -57,8 +57,7 @@ def autodock():
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
 
-        # cmds=['/autodock/scripts/1b_prepare_ligands.sh', 'barabra'],
-        cmds=['/bin/sh', '-c', 'echo ligand preparation!'],
+        cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
     )
 
     docking = KubernetesPodOperator(
