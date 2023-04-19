@@ -51,7 +51,7 @@ def autodock():
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh {{ params.pdbid }}'],
+        cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', params.pdbid],
     )
 
     prepare_receptor
