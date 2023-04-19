@@ -69,7 +69,8 @@ def autodock():
         full_pod_spec=full_pod_spec_gpu,
 
         container_resources=k8s.V1ResourceRequirements(
-            requests={"nvidia.com/gpu": "1"}
+            requests={"nvidia.com/gpu": "1"},
+            limits={"nvidia.com/gpu": "1"}
         ),
         env_vars=[
             k8s.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="all"),
