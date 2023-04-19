@@ -14,10 +14,11 @@ VOLUME_KEY  = 'volume-autodock'
 
 # Parameters 
 # TODO: replace with DAG parameters
-PROTEIN_PDBID = '7cpa'
 AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 
-default_args = {}
+default_args = {
+    'pdbid': '7cpa'
+}
 namespace = conf.get('kubernetes', 'NAMESPACE')
 
 @dag(start_date=datetime(2021, 1, 1),
@@ -39,7 +40,7 @@ def autodock():
 
             image='gabinsc/autodock-gpu:1.5.3',
             cmds=['sh', '-c'],
-            arguments=[f'cd {MOUNT_PATH} && /autodock/scripts/1_fetch_prepare_protein.sh {PROTEIN_PDBID}'],
+            arguments=['cd ' + MOUNT_PATH + ' && /autodock/scripts/1_fetch_prepare_protein.sh {{ params.pdbid }}'],
 
             volume_mounts=[volume_mount],
             volumes=[volume],
