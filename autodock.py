@@ -9,7 +9,7 @@ from datetime import datetime
 from kubernetes.client import models as k8s
 
 PVC_NAME = 'pvc-autodock'
-PV_NAME  = 'pv-autodock'
+VOLUME_KEY  = 'volume-autodock'
 MOUNT_PATH = '/data'
 
 # Parameters 
@@ -28,10 +28,10 @@ def autodock():
     import os.path
 
     volume = k8s.V1Volume(
-        name=PV_NAME,
+        name=VOLUME_KEY,
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME)
     )
-    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)
+    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
 
     prepare_receptor = KubernetesPodOperator(
             namespace=namespace,
@@ -44,9 +44,9 @@ def autodock():
             volume_mounts=[volume_mount],
             volumes=[volume],
             image_pull_policy='Always',
-            
-            get_logs=True
     )
+
+
 
     prepare_receptor
 
