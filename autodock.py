@@ -46,7 +46,7 @@ def autodock():
             volumes=[volume],
             image_pull_policy='Always',
     )
-    # BARABRA
+    
     prepare_receptor
 
 autodock()
