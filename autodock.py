@@ -34,7 +34,7 @@ def autodock():
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
 
-
+    # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name='autodock-container',
         image='gabinsc/autodock-gpu:1.5.3',
@@ -47,13 +47,33 @@ def autodock():
     full_pod_spec = k8s.V1Pod(spec=pod_spec)
 
     prepare_receptor = KubernetesPodOperator(
-        namespace=namespace,
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
         cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
     )
 
-    prepare_receptor
+    prepare_ligands = KubernetesPodOperator(
+        task_id='prepare_ligands',
+        full_pod_spec=full_pod_spec,
+
+        cmds=['/autodock/scripts/1b_prepare_ligands.sh', 'barabra'],
+    )
+
+    docking = KubernetesPodOperator(
+        task_id='docking',
+        full_pod_spec=full_pod_spec,
+
+        cmds=['/bin/sh', '-c', 'echo docking!!!'],
+    )
+
+    postprocessing = KubernetesPodOperator(
+        task_id='postprocessing',
+        full_pod_spec=full_pod_spec,
+
+        cmds=['/bin/sh', '-c', 'echo postprocess!!!'],
+    )
+
+    [prepare_receptor, prepare_ligands] >> docking >> postprocessing
 
 autodock()
