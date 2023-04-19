@@ -33,7 +33,7 @@ def autodock():
         name=PV_NAME,
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME)
     )
-    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PVC_NAME)
+    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=PV_NAME)
 
     container = k8s.V1Container(
             name='autodock-container',
@@ -46,20 +46,13 @@ def autodock():
     spec = k8s.V1PodSpec(restart_policy='OnFailure', containers=[container])
     full_pod_spec = k8s.V1Pod(metadata=metadata,spec=spec)
 
-    print('BARA BRA', namespace)
-
     prepare_receptor = KubernetesPodOperator(
-            task_id='prepare_receptor',
-
             namespace=namespace,
-            name='autodock-pod',
-            image='gabinsc/autodock-gpu:1.5.3',
-            cmds=['/autodock/scripts/1_fetch_prepare_protein.sh', PROTEIN_PDBID],
-            
+            task_id='autogrid',
             volumes=[volume],
             volume_mounts=[volume_mount],
-            image_pull_policy='Always',
-            # working_dir=MOUNT_PATH,
+            full_pod_spec=full_pod_spec,
+            get_logs=True
     )
 
     prepare_receptor
