@@ -38,6 +38,7 @@ def autodock():
     container = k8s.V1Container(
             name='autodock-container',
             image='gabinsc/autodock-gpu:1.5.3',
+            volumes=[volume],
             volume_mounts=[volume_mount],
             image_pull_policy='Always',
             working_dir=MOUNT_PATH, # work in the shared directory
