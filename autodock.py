@@ -35,7 +35,7 @@ def autodock():
 
     prepare_receptor = KubernetesPodOperator(
             namespace=namespace,
-            #task_id='prepare_receptor',
+            task_id='prepare_receptor',
 
             image='gabinsc/autodock-gpu:1.5.3',
             cmds=['sh', '-c'],
