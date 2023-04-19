@@ -64,6 +64,15 @@ def autodock():
         task_id='docking',
         full_pod_spec=full_pod_spec,
 
+        container_resources=k8s.V1ResourceRequirements(
+            requests={"cpu": "1600m","memory":"5000M","nvidia.com/gpu": "1"},
+            limits={"nvidia.com/gpu": "1"}
+        ),
+        env_vars=[
+            k8s.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="all"),
+            k8s.V1EnvVar(name="NVIDIA_DRIVER_CAPABALITIES", value="compute,utility")
+        ],
+
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
     )
 
