@@ -43,16 +43,24 @@ def autodock():
         volume_mounts=[volume_mount],
         image_pull_policy='Always',
     )
+
+    # CPU/generic pod specification
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
     full_pod_spec = k8s.V1Pod(spec=pod_spec)
 
+    # GPU-specific pod specification
+    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
+    full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
+
+    # 1a - Prepare the protein
     prepare_receptor = KubernetesPodOperator(
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
         cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
     )
-
+    
+    # 1b - Prepare the ligands
     prepare_ligands = KubernetesPodOperator(
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
@@ -60,13 +68,10 @@ def autodock():
         cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}'],
     )
 
-    # pod specs for use with GPU
-    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
-    full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
-
+    # 2 - Perform docking
     docking = KubernetesPodOperator(
         task_id='docking',
-        full_pod_spec=full_pod_spec,
+        full_pod_spec=full_pod_spec_gpu,
         container_resources=k8s.V1ResourceRequirements(
             limits={"nvidia.com/gpu": "1"}
         ),
@@ -74,6 +79,7 @@ def autodock():
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
     )
 
+    # 3 - Post-processing (extracting relevant data)
     postprocessing = KubernetesPodOperator(
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
