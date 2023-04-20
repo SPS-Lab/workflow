@@ -10,7 +10,7 @@ from kubernetes.client import models as k8s
 
 PVC_NAME = 'pvc-autodock'
 MOUNT_PATH = '/data'
-VOLUME_KEY  = 'volume-autodock'
+VOLUME_KEY  = 'pv-autodock'
 
 # Parameters 
 # TODO: replace with DAG parameters
