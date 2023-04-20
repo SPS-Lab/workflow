@@ -66,11 +66,11 @@ def autodock():
 
     docking = KubernetesPodOperator(
         task_id='docking',
-        full_pod_spec=full_pod_spec_gpu,
+        full_pod_spec=full_pod_spec,
         container_resources=k8s.V1ResourceRequirements(
             limits={"nvidia.com/gpu": "1"}
         ),
-        
+
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
     )
 
