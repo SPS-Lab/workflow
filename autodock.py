@@ -10,7 +10,7 @@ from kubernetes.client import models as k8s
 
 PVC_NAME = 'pvc-autodock'
 MOUNT_PATH = '/data'
-VOLUME_KEY  = 'pv-autodock'
+VOLUME_KEY  = 'volume-autodock'
 
 # Parameters 
 # TODO: replace with DAG parameters
@@ -30,7 +30,17 @@ def autodock():
 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
-        ephemeral=k8s.V1EphemeralVolumeSource(),
+        ephemeral=k8s.V1EphemeralVolumeSource(
+            volume_claim_template=k8s.V1PersistentVolumeClaimTemplate(
+                spec=k8s.V1PersistentVolumeClaimSpec(
+                    access_modes=['ReadWriteMany'],
+                    storage_class_name='local-path',
+                    resources=k8s.V1ResourceRequirements(
+                        requests={'storage': '1Gi'}   
+                    )
+                )
+            ),
+        )
         # persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
