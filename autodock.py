@@ -100,7 +100,7 @@ def autodock():
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/bin/sh', '-c', 'echo postprocess!!!'],
+        cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}'],
     )
 
     [prepare_receptor, prepare_ligands] >> docking >> postprocessing
