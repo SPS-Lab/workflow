@@ -103,7 +103,6 @@ def autodock():
         cmds=['/bin/sh', '-c', 'echo postprocess!!!'],
     )
 
-    # [prepare_receptor, prepare_ligands] >> 
-    docking >> postprocessing
+    [prepare_receptor, prepare_ligands] >> docking >> postprocessing
 
 autodock()
