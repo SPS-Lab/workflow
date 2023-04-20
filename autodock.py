@@ -30,9 +30,8 @@ def autodock():
 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
-        persistent_volume_claim=k8s.V1EphemeralVolumeSource(
-            volume_claim_template=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME)
-        )
+        ephemeral=k8s.V1EphemeralVolumeSource(),
+        # persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
 
