@@ -34,7 +34,6 @@ def autodock():
             volume_claim_template=k8s.V1PersistentVolumeClaimTemplate(
                 spec=k8s.V1PersistentVolumeClaimSpec(
                     access_modes=['ReadWriteMany'],
-                    storage_class_name='local-path',
                     resources=k8s.V1ResourceRequirements(
                         requests={'storage': '1Gi'}   
                     )
