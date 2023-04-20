@@ -60,24 +60,7 @@ def autodock():
         cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}'],
     )
 
-    # redo pod specs for NVIDIA
-    container_gpu = k8s.V1Container(
-        name='autodock-gpu-container',
-        image='gabinsc/autodock-gpu:1.5.3',
-        working_dir=MOUNT_PATH,
-
-        volume_mounts=[volume_mount],
-        image_pull_policy='Always',
-
-        resources=k8s.V1ResourceRequirements(
-            requests={"cpu": "1600m","memory":"5000M","nvidia.com/gpu": "1"},
-            limits={"nvidia.com/gpu": "1"}
-        ),
-        env=[
-            k8s.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="all"),
-            k8s.V1EnvVar(name="NVIDIA_DRIVER_CAPABALITIES", value="compute,utility")
-        ],
-    )
+    # pod specs for use with GPU
     pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
     full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
 
