@@ -23,6 +23,7 @@ def test_dag():
             task_id=f'docking_{i}',
             bash_command=f'echo "I am task docking #{i}" && sleep 5'
         )
+        [prepare_receptor, prepare_ligands] >> t
         ts.append(t)
 
     postprocessing = BashOperator(
@@ -30,6 +31,6 @@ def test_dag():
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    [prepare_receptor, prepare_ligands] >> ts >> postprocessing
+    ts >> postprocessing
 
 test_dag()
