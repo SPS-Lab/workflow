@@ -82,7 +82,7 @@ def autodock():
         ),
 
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
-        # get_logs=False # otherwise generates too much log
+        get_logs=False # otherwise generates too much log
     )
 
     # 3 - Post-processing (extracting relevant data)
@@ -90,7 +90,7 @@ def autodock():
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}'],
+        cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
     [prepare_receptor, prepare_ligands] >> docking >> postprocessing
