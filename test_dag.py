@@ -7,7 +7,6 @@ from datetime import datetime
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None)
 def test_dag(): 
-
     prepare_receptor = BashOperator(
         task_id='prepare_receptor',
         bash_command='echo "I am task prepare_receptor"'
