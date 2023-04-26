@@ -4,7 +4,8 @@ from airflow.decorators import dag, task
 
 from datetime import datetime
 
-@dag(start_date=datetime(2021, 1, 1))
+@dag(start_date=datetime(2021, 1, 1), 
+    schedule=None)
 def test_dag(): 
 
     prepare_receptor = BashOperator(
