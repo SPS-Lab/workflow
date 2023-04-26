@@ -82,7 +82,7 @@ def autodock():
         ),
 
         cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
-        get_logs=False # otherwise generates too much log
+        # get_logs=False # otherwise generates too much log
     )
 
     # 3 - Post-processing (extracting relevant data)
