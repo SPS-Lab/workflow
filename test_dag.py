@@ -17,16 +17,19 @@ def test_dag():
         bash_command='echo "I am task prepare_ligands" && sleep 2'
     )
 
-    docking = BashOperator(
-        task_id='docking',
-        bash_command='echo "I am task docking" && sleep 5'
-    )
+    ts = []
+    for i in range(5):
+        t = BashOperator(
+            task_id=f'docking_{i}',
+            bash_command=f'echo "I am task docking #{i}" && sleep 5'
+        )
+        ts.append(t)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    [prepare_receptor, prepare_ligands] >> docking >> postprocessing
+    [prepare_receptor, prepare_ligands] >> ts >> postprocessing
 
 test_dag()
