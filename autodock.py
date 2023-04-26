@@ -17,8 +17,12 @@ VOLUME_KEY  = 'volume-autodock'
 AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 
 params = {
+    # PDBID of the receptor, which will be used to fetch protein data from PDB
     'pdbid': '7cpa',
-    'ligands_filename': 'sweetlead.sdf'
+
+    # label of the ligand database, the filename for 
+    # the corresponding database must be '{db_label}.sdf'
+    'ligand_db': 'sweetlead'
 }
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
@@ -66,7 +70,7 @@ def autodock():
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligands_filename }}'],
+        cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
     # 2 - Perform docking
