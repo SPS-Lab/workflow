@@ -17,7 +17,8 @@ VOLUME_KEY  = 'volume-autodock'
 AUTOGRID_GRID_CENTER = (49.8363, 17.6087, 36.2723)
 
 params = {
-    'pdbid': '7cpa'
+    'pdbid': '7cpa',
+    'ligands_filename': 'sweetlead.sdf'
 }
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
@@ -65,7 +66,7 @@ def autodock():
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}'],
+        cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligands_filename }}'],
     )
 
     # 2 - Perform docking
