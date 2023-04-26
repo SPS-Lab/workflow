@@ -81,7 +81,7 @@ def autodock():
             limits={"nvidia.com/gpu": "1"}
         ),
 
-        cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}'],
+        cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
         # get_logs=False # otherwise generates too much log
     )
 
