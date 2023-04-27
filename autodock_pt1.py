@@ -36,7 +36,7 @@ params = {
 
 
 def preprocess_input(**context):
-    list_of_inputs = ["A", "B", "C", "D"]
+    list_of_inputs = ["A", "B", "C", "D", "E"]
     Variable.set(key="list_of_inputs", value=list_of_inputs, serialize_json=True)
 
 with DAG(dag_id="autodock_subdag_1", 
