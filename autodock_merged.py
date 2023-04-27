@@ -42,7 +42,7 @@ def preprocess_input(**context):
     Variable.set(key="list_of_inputs", value=list_of_inputs, serialize_json=True)
 
 with DAG(dag_id="autodock_full", 
-    schedule="@once",
+    schedule=None,
     start_date=datetime(2021, 1, 1),
     catchup=False, params=params) as dag:
 
@@ -74,8 +74,8 @@ with DAG(dag_id="autodock_full",
     prepare_ligands = KubernetesPodOperator(
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
-
-        cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
+        cmds = ['/usr/bin/sleep', '10']
+        #cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
     prepare_input = PythonOperator(task_id='prepare_input', python_callable=preprocess_input, dag=dag)
