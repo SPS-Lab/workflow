@@ -41,7 +41,7 @@ def test_dag():
             image="alpine",
             cmds=["sh", "-c", f"echo '[\"barabra {fname_sdf}\"]' "],
             do_xcom_push=True
-        )
+        ).output
     
     @task
     def docking(batch_fname: str):
