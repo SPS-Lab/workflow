@@ -58,6 +58,8 @@ def test_dag():
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
+    prepare_receptor >> docked
+
     docked >> postprocessing
 
 test_dag()
