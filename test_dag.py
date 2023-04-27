@@ -4,6 +4,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 from airflow.decorators import dag, task
 
 from datetime import datetime
+import random
 
 from airflow.configuration import conf
 from airflow import XComArg
@@ -17,7 +18,7 @@ class PrepareLigandOperator(KubernetesPodOperator):
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            arguments=[f'echo \\"{sdf_name}\\" > /airflow/xcom/return.json'],
+            arguments=[f'sleep {random.randint(1,10)}; echo \\"{sdf_name}\\" > /airflow/xcom/return.json'],
             **kwargs
         )
 
