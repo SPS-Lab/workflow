@@ -78,8 +78,10 @@ def prep_dock():
     start_ligand_and_docking = TriggerDagRunOperator(
         task_id=f'start_ligand_and_docking',
         trigger_dag_id="autodock_pt2.py",
-        python_callable=preprocess_input
+        python_callable=preprocess_input)
+
+    emptyop = EmptyOperator(task_id="end")
     
-    prepare_ligands >> start_ligand_and_docking
+    prepare_ligands >> start_ligand_and_docking >> emptyop
 
 prep_dock()
