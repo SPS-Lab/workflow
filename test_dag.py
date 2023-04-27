@@ -68,7 +68,7 @@ def test_dag():
     def get_batch_labels(db_label, n):
         return [f'{db_label}_batch{i}.sdf' for i in range(n)]
 
-    split_sdf >> get_batch_labels.partial(db_label='db_label')
+    batch_labels = get_batch_labels(db_label='db_label', split_sdf.output)
 
     docked = docking.expand(batch_label=batch_labels)
 
