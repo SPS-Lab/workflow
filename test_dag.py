@@ -11,6 +11,7 @@ from airflow.models.xcom_arg import MapXComArg
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
+
 class PrepareLigandOperator(KubernetesPodOperator):
     def __init__(self, batch_fname: str, **kwargs):
         super().__init__(arguments=["echo fname:" + batch_fname], **kwargs)
@@ -38,16 +39,12 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    @task
-    def barabra():
-        return [XComArg(split_sdf)]
-
     prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
         task_id='prepare_ligands',
         image="alpine",
         cmds=["sh", "-c"],
-    ).expand(arguments=barabra())
+    ).expand(arguments=split_sdf.output)
 
     @task
     def docking(pdbid: str, batch_fname: str):
