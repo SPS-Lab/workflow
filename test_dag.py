@@ -17,16 +17,30 @@ def test_dag():
         bash_command='echo "I am task prepare_ligands" && sleep 2'
     )
 
-    @task
-    def docking(x: int):
-        print(f'Bara bra #{x}')
+    cmd = '|'.join([
+        'echo a b c',
+        r'xargs -0 printf \"%s\",',
+        r'sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
+    ])
 
-    docking_tasks = docking.expand(x=[1,2,3,4,5,6])
+    split_sdf = BashOperator(
+        task_id='split_sdf',
+        bash_command=cmd,
+        do_xcom_push=True
+    )
+
+    @task
+    def docking(pdbid: str, batch_fname: str):
+        print(f'Docking - PBDID: {pdbid}, batch_fname: {batch_fname}')
+
+    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=['batch0', 'batch1', 'batch3', 'batch4'])
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
+
+    split_sdf >> prepare_ligands
 
     [prepare_receptor, prepare_ligands] >> docking_tasks >> postprocessing
 
