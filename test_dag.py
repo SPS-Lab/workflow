@@ -64,7 +64,7 @@ def test_dag():
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    docked = docking.expand(batch_label=batch_labels)
+    docked = docking.expand(batch_label=['a', 'b', 'c'])
 
     postprocessing = BashOperator(
         task_id='postprocessing',
