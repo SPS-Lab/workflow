@@ -23,7 +23,7 @@ def test_dag():
     )
 
     cmd = '|'.join([
-        'mkdir -p /airflow/xcom/; echo a b c',
+        'echo a b c',
         r'xargs -0 printf \"%s\",',
         r'sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
     ])
