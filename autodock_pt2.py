@@ -72,10 +72,9 @@ with DAG(start_date=datetime(2021, 1, 1),
     table_list = json_table["list_of_inputs"]
 
     for input in table_list:
-
         # 1a - Prepare the protein
         prepare_receptor = KubernetesPodOperator(
-            task_id='prepare_receptor',
+            task_id='prepare_receptor' + input,
             full_pod_spec=full_pod_spec,
             cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
@@ -83,7 +82,7 @@ with DAG(start_date=datetime(2021, 1, 1),
 
         # 2 - Perform docking
         docking = KubernetesPodOperator(
-            task_id='docking',
+            task_id='docking' + input,
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
                 limits={"nvidia.com/gpu": "1"}
@@ -92,14 +91,14 @@ with DAG(start_date=datetime(2021, 1, 1),
             #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
             # get_logs=False # otherwise generates too much log
         )
+        prepare_receptor >> docking
 
         # 3 - Post-processing (extracting relevant data)
-        postprocessing = KubernetesPodOperator(
-            task_id='postprocessing',
-            full_pod_spec=full_pod_spec,
-            cmds = ['/usr/bin/sleep', '10']
+    postprocessing = KubernetesPodOperator(
+        task_id='postprocessing',
+        full_pod_spec=full_pod_spec,
+        cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
         )
 
-        prepare_receptor >> docking
     docking >> postprocessing
