@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.decorators import dag, task
+from airflow.decorators import dag, task, task_group
 
 from datetime import datetime
 import random
@@ -49,19 +49,21 @@ def test_dag():
         do_xcom_push=True
     ).expand(sdf_name=split_sdf)"""
 
-    @task
-    def prepare_ligands(sdf_name: str):
-        print(f'sdf_name={sdf_name}')
+    @task_group
+    def docking(sdf_name: str):
 
-        return sdf_name + '_prepared'
+        @task
+        def prepare_ligands(sdf_name: str):
+            print(f'prepare {sdf_name}')
+            return sdf_name + '_prepared'
 
-    @task
-    def docking(batch_fname: str):
-        print(f'Docking - batch_fname: {batch_fname}')
+        @task
+        def perform_docking(batch_fname: str):
+            print(f'docking: {batch_fname}')
+        
+        perform_docking(prepare_ligands(sdf_name))
 
-
-    prepared = prepare_ligands.expand(sdf_name=split_sdf.output)
-    docked = docking(prepared)
+    docked = docking.expand(sdf_name=split_sdf.output)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
