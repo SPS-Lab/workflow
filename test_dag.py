@@ -38,10 +38,7 @@ def test_dag():
         do_xcom_push=True,
     )
 
-
-    
-
-    @task_group
+    @task_group()
     def docking(batch_label: str):
         prepare_ligands = KubernetesPodOperator(
             namespace=namespace,
@@ -64,7 +61,7 @@ def test_dag():
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    docked = docking.expand(batch_label=['a', 'b', 'c'])
+    docked = docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
