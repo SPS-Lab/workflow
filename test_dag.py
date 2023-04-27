@@ -32,9 +32,7 @@ def test_dag():
 
     # converts the returned value to a JSON string
     cmd = '|'.join([
-        'echo a b c',
-        r'xargs printf \"%s\",',
-        r'sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
+        'echo 10'
     ])
     split_sdf = KubernetesPodOperator(
         namespace=namespace,
@@ -44,14 +42,17 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    """prepare_ligands = PrepareLigandOperator.partial(
+    """
+    prepare_ligands = KubernetesPodOperator(
+        namespace=namespace,
         task_id='prepare_ligands',
-        do_xcom_push=True
-    ).expand(sdf_name=split_sdf)"""
+        image="alpine",
+        cmds=["sh", "-c", f'echo prepare_ligands: {sdf_name}!; echo \\"{sdf_name}\\" | tee /airflow/xcom/return.json'],
+        do_xcom_push=True,
+    )"""
 
     @task_group
-    def docking(sdf_name: str):
-
+    def docking(batch_label: str):
         @task
         def prepare_ligands(sdf_name: str):
             print(f'prepare {sdf_name}')
@@ -61,9 +62,15 @@ def test_dag():
         def perform_docking(batch_fname: str):
             print(f'docking: {batch_fname}')
         
-        perform_docking(prepare_ligands(sdf_name))
+        perform_docking(prepare_ligands(batch_label))
 
-    docked = docking.expand(sdf_name=split_sdf.output)
+    @task
+    def get_batch_labels(db_label, n):
+        return [f'{db_label}_batch{i}.sdf' for i in range(n)]
+
+    batch_labels = get_batch_labels('db_label', split_sdf.output)
+
+    docked = docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
