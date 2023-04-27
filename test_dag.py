@@ -38,24 +38,23 @@ def test_dag():
         do_xcom_push=True,
     )
 
+
+    prepare_ligands = KubernetesPodOperator(
+        namespace=namespace,
+        task_id='prepare_ligands',
+        image="alpine",
+        cmds=["sh", "-c", f'echo preparing: {batch_label}'],
+    )
+    perform_docking = KubernetesPodOperator(
+        namespace=namespace,
+        task_id='perform_docking',
+        image="alpine",
+        cmds=["sh", "-c", f'echo docking: {batch_label}'],
+    )
+
+
     @task_group
     def docking(batch_label: str):
-        prepare_ligands = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='prepare_ligands',
-            image="alpine",
-            cmds=["sh", "-c", f'echo preparing: {batch_label}'],
-            do_xcom_push=True,
-        )
-        
-        perform_docking = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='perform_docking',
-            image="alpine",
-            cmds=["sh", "-c", f'echo docking: {batch_label}'],
-            do_xcom_push=True,
-        )
-
         prepare_ligands >> perform_docking
         
     @task
