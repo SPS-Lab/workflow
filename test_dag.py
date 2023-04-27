@@ -6,6 +6,7 @@ from airflow.decorators import dag, task
 from datetime import datetime
 
 from airflow.configuration import conf
+from airflow import XComArg
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
@@ -22,6 +23,7 @@ def test_dag():
         bash_command='echo "I am task prepare_ligands" && sleep 2'
     )
 
+    # converts the returned value to a JSON string
     cmd = '|'.join([
         'echo a b c',
         r'xargs printf \"%s\",',
@@ -40,7 +42,7 @@ def test_dag():
     def docking(pdbid: str, batch_fname: str):
         print(f'Docking - PBDID: {pdbid}, batch_fname: {batch_fname}')
 
-    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=['batch0', 'batch1', 'batch3', 'batch4'])
+    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=XComArg(split_sdf))
 
     postprocessing = BashOperator(
         task_id='postprocessing',
