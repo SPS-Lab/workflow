@@ -41,6 +41,7 @@ def preprocess_input(**context):
 
 with DAG(dag_id="autodock_subdag_1", 
     schedule="@once",
+    start_date=datetime(2021, 1, 1),
     catchup=False, params=params) as dag:
 
     volume = k8s.V1Volume(
