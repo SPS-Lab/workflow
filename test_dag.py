@@ -44,7 +44,8 @@ def test_dag():
     )
 
     prepare_ligands = PrepareLigandOperator.partial(
-            task_id='prepare_ligands'
+        task_id='prepare_ligands',
+        do_xcom_push=True
     ).expand(sdf_name=XComArg(split_sdf))
 
     @task
