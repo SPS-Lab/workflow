@@ -32,7 +32,7 @@ def test_dag():
 
     # converts the returned value to a JSON string
     cmd = '|'.join([
-        'echo 10'
+        'echo 10 > /airflow/xcom/return.json'
     ])
     split_sdf = KubernetesPodOperator(
         namespace=namespace,
