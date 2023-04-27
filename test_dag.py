@@ -17,7 +17,7 @@ class PrepareLigandOperator(KubernetesPodOperator):
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            arguments=[f'echo \\"{sdf_name}\\"'],
+            arguments=[f'echo \\"{sdf_name}\\" > /airflow/xcom/return.json'],
             **kwargs
         )
 
@@ -58,8 +58,6 @@ def test_dag():
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    prepare_receptor >> docked
-
-    docked >> postprocessing
+    prepare_receptor >> docked >> postprocessing
 
 test_dag()
