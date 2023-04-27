@@ -7,6 +7,7 @@ from datetime import datetime
 
 from airflow.configuration import conf
 from airflow import XComArg
+from airflow.models.xcom_arg import MapXComArg
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
@@ -39,10 +40,12 @@ def test_dag():
     )
 
     @task
-    def docking(pdbid: str, batch_fname: str):
+    def docking(pdbid: str, batch_fname: list):
         print(f'Docking - PBDID: {pdbid}, batch_fname: {batch_fname}')
 
-    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=XComArg(split_sdf))
+    docking_tasks = docking.partial(pdbid='7cpa').expand(
+        batch_fname=XComArg(split_sdf).map(list)
+    )
 
     postprocessing = BashOperator(
         task_id='postprocessing',
