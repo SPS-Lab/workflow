@@ -92,7 +92,7 @@ with DAG(start_date=datetime(2021, 1, 1),
             # get_logs=False # otherwise generates too much log
         )
         emptyop2 = EmptyOperator(task_id="wait_docking_jobs")
-        prepare_receptor >> docking >> emptyop2
+        prepare_receptor >> docking
 
         # 3 - Post-processing (extracting relevant data)
     postprocessing = KubernetesPodOperator(
