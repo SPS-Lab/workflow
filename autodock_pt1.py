@@ -146,6 +146,7 @@ def prep_dock():
     )
 
     start_ligand_and_docking = TriggerDagRunOperator(
+        task_id="start_ligand_and_docking",
         trigger_dag_id="docking",
         python_callable=preprocess_input)
 
