@@ -41,7 +41,7 @@ def preprocess_input(**context):
     list_of_inputs = ["A", "B", "C", "D", "E"]
     Variable.set(key="list_of_inputs", value=list_of_inputs, serialize_json=True)
 
-with DAG(dag_id="autodock_subdag_1", 
+with DAG(dag_id="autodock_full", 
     schedule="@once",
     start_date=datetime(2021, 1, 1),
     catchup=False, params=params) as dag:
