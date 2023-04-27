@@ -6,6 +6,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator 
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.models import Variable
+from airflow.operators.bash import BashOperator
 import os
 import time
 from datetime import datetime
@@ -145,13 +146,18 @@ def prep_dock():
         cmds=['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
+    prepare_input = BashOperator(
+        task_id="prepare_input",
+        bash_command="echo 1",
+    )
+
     start_ligand_and_docking = TriggerDagRunOperator(
         task_id="start_ligand_and_docking",
         trigger_dag_id="docking",
-        python_callable=preprocess_input)
+        )
 
     emptyop = EmptyOperator(task_id="end")
     
-    prepare_ligands >> start_ligand_and_docking >> emptyop
+    [prepare_ligands, prepare_input] >> start_ligand_and_docking >> emptyop
 
 prep_dock()
