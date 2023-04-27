@@ -65,7 +65,7 @@ def test_dag():
         perform_docking(prepare_ligands(batch_label))
 
     @task
-    def get_batch_labels(n):
+    def get_batch_labels(n:int):
         return [f'barabra_batch{i}.sdf' for i in range(n)]
 
     batch_labels = get_batch_labels(split_sdf.output)
