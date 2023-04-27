@@ -47,7 +47,7 @@ def test_dag():
     ).expand(batch_fname=XComArg(split_sdf))
 
     @task
-    def docking(pdbid: str, batch_fname: list):
+    def docking(pdbid: str, batch_fname: str):
         print(f'Docking - PBDID: {pdbid}, batch_fname: {batch_fname}')
 
     docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=['a', 'b'])
