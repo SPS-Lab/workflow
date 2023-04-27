@@ -39,7 +39,7 @@ def test_dag():
     )
 
     @task_group
-    def docking(batch_label: str):
+    def docking():
         """prepare_ligands = KubernetesPodOperator(
             namespace=namespace,
             task_id='prepare_ligands',
@@ -48,7 +48,7 @@ def test_dag():
         )"""
 
         @task
-        def prepare_ligands():
+        def prepare_ligands(batch_label: str):
             return 'barabra'
 
         perform_docking = KubernetesPodOperator(
