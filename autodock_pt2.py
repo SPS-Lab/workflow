@@ -84,14 +84,15 @@ with DAG(start_date=datetime(2021, 1, 1),
         docking = KubernetesPodOperator(
             task_id='docking' + input,
             full_pod_spec=full_pod_spec_gpu,
-            container_resources=k8s.V1ResourceRequirements(
-                limits={"nvidia.com/gpu": "1"}
-            ),
+            #container_resources=k8s.V1ResourceRequirements(
+            #    limits={"nvidia.com/gpu": "1"}
+            #),
             cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
             # get_logs=False # otherwise generates too much log
         )
-        prepare_receptor >> docking
+        emptyop = EmptyOperator(task_id="Merger")
+        prepare_receptor >> docking >> emptyop
 
         # 3 - Post-processing (extracting relevant data)
     postprocessing = KubernetesPodOperator(
@@ -101,4 +102,4 @@ with DAG(start_date=datetime(2021, 1, 1),
             #cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
         )
 
-    docking >> postprocessing
+    emptyop >> postprocessing
