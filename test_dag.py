@@ -38,8 +38,9 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    @task_group()
+    @task_group
     def docking(batch_label: str):
+
         prepare_ligands = KubernetesPodOperator(
             namespace=namespace,
             task_id='prepare_ligands',
@@ -53,7 +54,7 @@ def test_dag():
             cmds=["sh", "-c", f'echo docking: barabra'],
         )
 
-        return prepare_ligands >> perform_docking
+        return (prepare_ligands >> perform_docking)
         
     @task
     def get_batch_labels(db_label:str, n:int):
