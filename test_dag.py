@@ -60,16 +60,17 @@ def test_dag():
         
     @task
     def get_batch_labels(db_label:str, n:int):
-        return [f'{{}}_batch{i}' for i in range(n)]
+        return [f'{db_label}_batch{i}' for i in range(n)]
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
+    docked = docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    prepare_receptor >> docking.expand(batch_label=batch_labels) >> postprocessing
+    prepare_receptor >> docked >> postprocessing
 
 test_dag()
