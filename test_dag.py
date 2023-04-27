@@ -53,7 +53,7 @@ def test_dag():
             cmds=["sh", "-c", f'echo docking: barabra'],
         )
 
-        prepare_ligands >> perform_docking
+        return prepare_ligands >> perform_docking
         
     @task
     def get_batch_labels(db_label:str, n:int):
