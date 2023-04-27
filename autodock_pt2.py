@@ -91,7 +91,7 @@ with DAG(start_date=datetime(2021, 1, 1),
             #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
             # get_logs=False # otherwise generates too much log
         )
-        emptyop = EmptyOperator(task_id="Merger")
+        emptyop = EmptyOperator(task_id="wait_docking_jobs")
         prepare_receptor >> docking >> emptyop
 
         # 3 - Post-processing (extracting relevant data)
