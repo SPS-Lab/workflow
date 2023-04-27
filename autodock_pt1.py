@@ -34,7 +34,7 @@ params = {
 def preprocess_input(context, dag_run_obj):
     list_of_inputs = ["A", "B", "C", "D"]
     Variable.set(key="list_of_inputs", value=list_of_inputs, serialize_json=True)
-    return true 
+    return True 
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
