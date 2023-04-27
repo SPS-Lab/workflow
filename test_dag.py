@@ -47,18 +47,22 @@ def test_dag():
             cmds=["sh", "-c", f'echo docking: barabra'],
         )"""
 
-        @task
-        def prepare_ligands(batch_label: str):
-            return 'barabra'
+
+        prepare_ligands = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='prepare_ligands',
+            image="alpine",
+            cmds=["sh", "-c", f'echo preparing: {batch_label}'],
+        )
 
         perform_docking = KubernetesPodOperator(
             namespace=namespace,
             task_id='perform_docking',
             image="alpine",
-            cmds=["sh", "-c", f'echo preparing: barabra'],
+            cmds=["sh", "-c", f'echo docking: barabra'],
         )
         
-        prepare_ligands(batch_label) >> perform_docking
+        prepare_ligands >> perform_docking
         
     @task
     def get_batch_labels(db_label:str, n:int):
