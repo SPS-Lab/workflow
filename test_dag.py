@@ -44,16 +44,24 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    prepare_ligands = PrepareLigandOperator.partial(
+    """prepare_ligands = PrepareLigandOperator.partial(
         task_id='prepare_ligands',
         do_xcom_push=True
-    ).expand(sdf_name=XComArg(split_sdf))
+    ).expand(sdf_name=split_sdf)"""
+
+    @task
+    def prepare_ligands(sdf_name: str):
+        print(f'sdf_name={sdf_name}')
+
+        return sdf_name + '_prepared'
 
     @task
     def docking(batch_fname: str):
         print(f'Docking - batch_fname: {batch_fname}')
 
-    docked = docking.expand(batch_fname=XComArg(prepare_ligands))
+
+    prepared = prepare_ligands.expand(sdf_name=split_sdf.output)
+    docked = docking(prepared)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
