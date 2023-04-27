@@ -23,10 +23,13 @@ def test_dag():
         r'sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
     ])
 
-    split_sdf = BashOperator(
-        task_id='split_sdf',
-        bash_command=cmd,
-        do_xcom_push=True
+    split_sdf = KubernetesPodOperator(
+        namespace="default",
+        image="alpine",
+        cmds=["sh", "-c", cmd],
+        name="split_sdf",
+        do_xcom_push=True,
+        in_cluster=True,
     )
 
     @task
