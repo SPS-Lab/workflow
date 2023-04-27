@@ -30,53 +30,46 @@ def test_dag():
         bash_command='echo "I am task prepare_receptor" && sleep 1'
     )
 
-    # converts the returned value to a JSON string
-    cmd = '|'.join([
-        'echo 10 > /airflow/xcom/return.json'
-    ])
     split_sdf = KubernetesPodOperator(
         namespace=namespace,
         task_id='split_sdf',
         image="alpine",
-        cmds=["sh", "-c", cmd],
+        cmds=["sh", "-c", 'echo 10 > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
 
-    """
-    prepare_ligands = KubernetesPodOperator(
-        namespace=namespace,
-        task_id='prepare_ligands',
-        image="alpine",
-        cmds=["sh", "-c", f'echo prepare_ligands: {sdf_name}!; echo \\"{sdf_name}\\" | tee /airflow/xcom/return.json'],
-        do_xcom_push=True,
-    )"""
-
     @task_group
     def docking(batch_label: str):
-        @task
-        def prepare_ligands(sdf_name: str):
-            print(f'prepare {sdf_name}')
-            return sdf_name + '_prepared'
-
-        @task
-        def perform_docking(batch_fname: str):
-            print(f'docking: {batch_fname}')
+        prepare_ligands = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='prepare_ligands',
+            image="alpine",
+            cmds=["sh", "-c", f'echo preparing: {batch_label}'],
+            do_xcom_push=True,
+        )
         
-        perform_docking(prepare_ligands(batch_label))
+        perform_docking = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='perform_docking',
+            image="alpine",
+            cmds=["sh", "-c", f'echo docking: {batch_label}'],
+            do_xcom_push=True,
+        )
 
+        prepare_ligands >> perform_docking
+        
     @task
     def get_batch_labels(db_label:str, n:int):
-        return [f'{db_label}_batch{i}.sdf' for i in range(n)]
+        return [f'{{}}_batch{i}' for i in range(n)]
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    docked = docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    prepare_receptor >> docked >> postprocessing
+    prepare_receptor >> docking.expand(batch_label=batch_labels) >> postprocessing
 
 test_dag()
