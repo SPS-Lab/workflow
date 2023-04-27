@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.models.param import Param
 from airflow.decorators import dag, task
 from airflow.configuration import conf
-from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator 
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.models import Variable
@@ -80,9 +80,7 @@ def prep_dock():
         trigger_dag_id="autodock_pt2.py",
         python_callable=preprocess_input
 
-    dag_end = DummyOperator(
-        task_id="dag_end"
-    )
+    empty_op = EmptyOperator(task_id="dag_end")
     
     prepare_ligands >> start_ligand_and_docking >> dag_end
 

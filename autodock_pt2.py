@@ -95,4 +95,4 @@ def autodock():
         prepare_receptor >> docking
     docking >> postprocessing
 
-autodock()
+#autodock()
