@@ -39,12 +39,10 @@ def preprocess_input(context, dag_run_obj):
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
-@dag(start_date=datetime(2021, 1, 1),
+with DAG(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
-     params=params, dag_id="autodock_pt2")
-def autodock(): 
-    import os.path
+     params=params, dag_id="autodock_subdag_2") as dag:
 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
@@ -105,5 +103,3 @@ def autodock():
 
         prepare_receptor >> docking
     docking >> postprocessing
-
-autodock()
