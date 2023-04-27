@@ -91,8 +91,8 @@ with DAG(start_date=datetime(2021, 1, 1),
             #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
             # get_logs=False # otherwise generates too much log
         )
-        emptyop = EmptyOperator(task_id="wait_docking_jobs")
-        prepare_receptor >> docking >> emptyop
+        emptyop2 = EmptyOperator(task_id="wait_docking_jobs")
+        prepare_receptor >> docking >> emptyop2
 
         # 3 - Post-processing (extracting relevant data)
     postprocessing = KubernetesPodOperator(
@@ -102,4 +102,4 @@ with DAG(start_date=datetime(2021, 1, 1),
             #cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
         )
 
-    emptyop >> postprocessing
+    emptyop2 >> postprocessing
