@@ -26,6 +26,7 @@ def test_dag():
 
     split_sdf = KubernetesPodOperator(
         namespace="default",
+        task_id='split_sdf',
         image="alpine",
         cmds=["sh", "-c", cmd],
         name="split_sdf",
