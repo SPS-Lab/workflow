@@ -68,7 +68,7 @@ def autodock():
         prepare_receptor = KubernetesPodOperator(
             task_id='prepare_receptor',
             full_pod_spec=full_pod_spec,
-            cmds = ['/usr/bin/sleep, '10']
+            cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
         )
 
@@ -79,7 +79,7 @@ def autodock():
             container_resources=k8s.V1ResourceRequirements(
                 limits={"nvidia.com/gpu": "1"}
             ),
-            cmds = ['/usr/bin/sleep, '10']
+            cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
             # get_logs=False # otherwise generates too much log
         )
@@ -88,7 +88,7 @@ def autodock():
         postprocessing = KubernetesPodOperator(
             task_id='postprocessing',
             full_pod_spec=full_pod_spec,
-            cmds = ['/usr/bin/sleep, '10']
+            cmds = ['/usr/bin/sleep', '10']
             #cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
         )
 
