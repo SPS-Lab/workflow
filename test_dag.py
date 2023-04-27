@@ -34,27 +34,28 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    def barabra(f):
-        return [f]
+    @task
+    def prepare_ligands(fname_sdf: str):
+        return KubernetesPodOperator(
+            namespace=namespace,
+            image="alpine",
+            cmds=["sh", "-c", f"echo prepare_ligands: {fname_sdf}"],
+            do_xcom_push=True
+        )
 
-    prepare_ligands = KubernetesPodOperator.partial(
-        namespace=namespace,
-        task_id='prepare_ligands',
-        image="alpine",
-        cmds=["sh", "-c"],
-    ).expand(arguments=split_sdf.output.map(barabra))
+    prepare_ligands.expand(fname_sdf=['a'])
 
     @task
     def docking(pdbid: str, batch_fname: str):
         print(f'Docking - PBDID: {pdbid}, batch_fname: {batch_fname}')
 
-    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=['a', 'b'])
+    docking_tasks = docking.partial(pdbid='7cpa').expand(batch_fname=['a'])
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    [prepare_receptor, prepare_ligands] >> docking_tasks >> postprocessing
+    # [prepare_receptor, prepare_ligands] >> docking_tasks >> postprocessing
 
 test_dag()
