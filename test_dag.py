@@ -17,7 +17,7 @@ class PrepareLigandOperator(KubernetesPodOperator):
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            arguments=[f'echo sdf_name={sdf_name}'],
+            arguments=[f'echo \\"{sdf_name}\\"'],
             **kwargs
         )
 
