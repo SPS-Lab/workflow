@@ -42,7 +42,7 @@ namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
-     params=params, dag_id="autodock_pt2.py")
+     params=params, dag_id="autodock_pt2")
 def autodock(): 
     import os.path
 

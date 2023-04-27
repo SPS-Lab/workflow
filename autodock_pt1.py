@@ -40,7 +40,7 @@ def preprocess_input(context, dag_run_obj):
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
-     dag_id="preprocessing", params=params)
+     dag_id="autodock_pt1", params=params)
 def prep_dock():
     import os.path
 
@@ -82,7 +82,7 @@ def prep_dock():
     )
 
     start_ligand_and_docking = TriggerDagRunOperator(
-        task_id="autodock_pt2.py",
+        task_id="autodock_pt2",
         trigger_dag_id="docking",
         )
 
