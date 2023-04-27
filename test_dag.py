@@ -43,15 +43,14 @@ def test_dag():
         namespace=namespace,
         task_id='prepare_ligands',
         image="alpine",
-        cmds=["sh", "-c", f'echo preparing: {batch_label}'],
+        cmds=["sh", "-c", f'echo preparing: barabra'],
     )
     perform_docking = KubernetesPodOperator(
         namespace=namespace,
         task_id='perform_docking',
         image="alpine",
-        cmds=["sh", "-c", f'echo docking: {batch_label}'],
+        cmds=["sh", "-c", f'echo docking: barabra'],
     )
-
 
     @task_group
     def docking(batch_label: str):
