@@ -36,6 +36,7 @@ def test_dag():
     @task
     def prepare_ligands(fname_sdf: str):
         return KubernetesPodOperator(
+            task_id='prepare_ligands',
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c", f"echo prepare_ligands: {fname_sdf}"],
