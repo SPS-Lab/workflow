@@ -1,4 +1,5 @@
 from airflow import DAG, XComArg
+from airflow.models.xcom_arg import MapXComArg
 from airflow.models.param import Param
 from airflow.decorators import dag, task
 from airflow.configuration import conf
@@ -65,7 +66,6 @@ def autodock():
         cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
     )
 
-
     # --- Split the SDF file ---
     cmd_split_sdf = (
         '/autodock/scripts/split_sdf.sh 1000 {{ params.ligand_db }} | ' +
@@ -73,7 +73,6 @@ def autodock():
         # converts the returned lines to a JSON array
         r'xargs printf \"%s\", | sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
     )
-
     split_sdf = KubernetesPodOperator(
         task_id='split_sdf',
         full_pod_spec=full_pod_spec,
@@ -81,14 +80,15 @@ def autodock():
         cmds = ['/bin/sh', '-c', cmd_split_sdf],
         do_xcom_push=True,
     )
-    
+
     # 1b - Prepare the ligands
     prepare_ligands = KubernetesPodOperator.partial(
         task_id='prepare_ligands',
         full_pod_spec=full_pod_spec,
 
         cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
-    ).expand(arguments=XComArg(split_sdf))
+
+    ).expand(arguments=split_sdf.output.map(lambda fname: [fname]))
 
     # 2 - Perform docking
     docking = KubernetesPodOperator(
