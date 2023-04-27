@@ -38,21 +38,27 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    perform_docking = KubernetesPodOperator(
-        namespace=namespace,
-        task_id='perform_docking',
-        image="alpine",
-        cmds=["sh", "-c", f'echo docking: barabra'],
-    )
+    @task_group
+    def docking(batch_label: str):
+        """perform_docking = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='perform_docking',
+            image="alpine",
+            cmds=["sh", "-c", f'echo docking: barabra'],
+        )"""
 
-    prepare_ligands = KubernetesPodOperator(
-        namespace=namespace,
-        task_id='prepare_ligands',
-        image="alpine",
-        cmds=["sh", "-c", f'echo preparing: barabra'],
-    )
+        @task
+        def prepare_ligands():
+            return 'barabra'
 
-    prepare_ligands >> perform_docking
+        prepare_ligands = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='prepare_ligands',
+            image="alpine",
+            cmds=["sh", "-c", f'echo preparing: barabra'],
+        )
+        
+        prepare_ligands >> perform_docking
         
     @task
     def get_batch_labels(db_label:str, n:int):
@@ -60,7 +66,7 @@ def test_dag():
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    docked = prepare_ligands.expand(batch_label=batch_labels)
+    docked = docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
