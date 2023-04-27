@@ -11,6 +11,16 @@ from airflow.models.xcom_arg import MapXComArg
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
+class PrepareLigandOperator(KubernetesPodOperator):
+    def __init__(self, sdf_name:str, **kwargs):
+        super().__init__(
+            namespace=namespace,
+            image="alpine",
+            cmds=["sh", "-c"],
+            arguments=[f'echo sdf_name={sdf_name}'],
+            **kwargs
+        )
+
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None)
 def test_dag(): 
@@ -33,26 +43,21 @@ def test_dag():
         do_xcom_push=True,
     )
 
-    @task
-    def prepare_ligands(fname_sdf: str):
-        return KubernetesPodOperator(
-            task_id='prepare_ligands',
-            namespace=namespace,
-            image="alpine",
-            cmds=["sh", "-c", f"echo '[\"barabra {fname_sdf}\"]' "],
-            do_xcom_push=True
-        ).output
-    
+    prepare_ligands = PrepareLigandOperator.partial(
+            task_id='prepare_ligands'
+    ).expand(sdf_name=XComArg(split_sdf))
+
     @task
     def docking(batch_fname: str):
         print(f'Docking - batch_fname: {batch_fname}')
 
-    prepared = prepare_ligands.expand(fname_sdf=split_sdf.output)
-    docking.expand(batch_fname=prepared)
+    docked = docking.expand(batch_fname=XComArg(prepare_ligands))
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
+
+    docked >> postprocessing
 
 test_dag()
