@@ -82,12 +82,79 @@ def prep_dock():
     )
 
     start_ligand_and_docking = TriggerDagRunOperator(
-        task_id="autodock_pt2",
+        task_id="autodock_2",
         trigger_dag_id="docking",
         )
 
     emptyop = EmptyOperator(task_id="end")
     
     [prepare_ligands, prepare_input] >> start_ligand_and_docking >> emptyop
+
+@dag(start_date=datetime(2021, 1, 1),
+     schedule=None,
+     catchup=False,
+     params=params, dag_id="autodock_2")
+def autodock(): 
+    import os.path
+
+    volume = k8s.V1Volume(
+        name=VOLUME_KEY,
+        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
+    )
+    volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
+
+    # define a generic container, which can be used for all tasks
+    container = k8s.V1Container(
+        name='autodock-container',
+        image='gabinsc/autodock-gpu:1.5.3',
+        working_dir=MOUNT_PATH,
+
+        volume_mounts=[volume_mount],
+        image_pull_policy='Always',
+    )
+
+    # CPU/generic pod specification
+    pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
+    full_pod_spec = k8s.V1Pod(spec=pod_spec)
+
+    # GPU-specific pod specification
+    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
+    full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
+
+    json_table = Variable.get("dag_update_data_var", deserialize_json=True, default_var={"list_of_inputs":["A"]})
+    table_list = json_table["list_of_inputs"]
+
+    for input in table_list:
+
+        # 1a - Prepare the protein
+        prepare_receptor = KubernetesPodOperator(
+            task_id='prepare_receptor',
+            full_pod_spec=full_pod_spec,
+            cmds = ['/usr/bin/sleep', '10']
+            #cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
+        )
+
+        # 2 - Perform docking
+        docking = KubernetesPodOperator(
+            task_id='docking',
+            full_pod_spec=full_pod_spec_gpu,
+            container_resources=k8s.V1ResourceRequirements(
+                limits={"nvidia.com/gpu": "1"}
+            ),
+            cmds = ['/usr/bin/sleep', '10']
+            #cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
+            # get_logs=False # otherwise generates too much log
+        )
+
+        # 3 - Post-processing (extracting relevant data)
+        postprocessing = KubernetesPodOperator(
+            task_id='postprocessing',
+            full_pod_spec=full_pod_spec,
+            cmds = ['/usr/bin/sleep', '10']
+            #cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
+        )
+
+        prepare_receptor >> docking
+    docking >> postprocessing
 
 prep_dock()
