@@ -33,9 +33,7 @@ def test_dag():
         task_id='split_sdf',
         image="alpine",
         cmds=["sh", "-c", cmd],
-        name="split_sdf",
         do_xcom_push=True,
-        in_cluster=True,
     )
 
     @task
