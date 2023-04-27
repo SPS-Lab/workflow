@@ -34,12 +34,15 @@ def test_dag():
         do_xcom_push=True,
     )
 
+    def barabra(f):
+        return [f]
+
     prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
         task_id='prepare_ligands',
         image="alpine",
         cmds=["sh", "-c"],
-    ).expand(arguments=split_sdf.output.map(list))
+    ).expand(arguments=split_sdf.output.map(barabra))
 
     @task
     def docking(pdbid: str, batch_fname: str):
