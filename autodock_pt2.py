@@ -68,7 +68,7 @@ with DAG(start_date=datetime(2021, 1, 1),
     pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
     full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
 
-    json_table = Variable.get("dag_update_data_var", deserialize_json=True, default_var={"list_of_inputs":["A"]})
+    json_table = Variable.get("list_of_inputs", deserialize_json=True, default_var={"list_of_inputs":["A"]})
     table_list = json_table["list_of_inputs"]
 
     for input in table_list:
