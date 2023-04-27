@@ -80,8 +80,8 @@ def prep_dock():
         trigger_dag_id="autodock_pt2.py",
         python_callable=preprocess_input
 
-    empty_op = EmptyOperator(task_id="dag_end")
+    emptyop = EmptyOperator(task_id="end")
     
-    prepare_ligands >> start_ligand_and_docking >> dag_end
+    prepare_ligands >> start_ligand_and_docking >> emptyop
 
 prep_dock()
