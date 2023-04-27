@@ -5,6 +5,10 @@ from airflow.decorators import dag, task
 
 from datetime import datetime
 
+from airflow.configuration import conf
+
+namespace = conf.get('kubernetes_executor', 'NAMESPACE')
+
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None)
 def test_dag(): 
@@ -25,7 +29,7 @@ def test_dag():
     ])
 
     split_sdf = KubernetesPodOperator(
-        namespace="default",
+        namespace=namespace,
         task_id='split_sdf',
         image="alpine",
         cmds=["sh", "-c", cmd],
