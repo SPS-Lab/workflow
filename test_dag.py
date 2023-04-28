@@ -58,12 +58,15 @@ def test_dag():
         def get_prepare_ligands_cmd(x):
             return [f'echo DOCKING filelist_{x}']
 
+        prepare_ligands_cmd = get_prepare_ligands_cmd(batch_label)
+        perform_docking_cmd = get_perform_docking_cmd(batch_label)
+
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=get_prepare_ligands_cmd(batch_label),
+            arguments=prepare_ligands_cmd,
             get_logs=True,
             do_xcom_push=True
         )
@@ -73,8 +76,11 @@ def test_dag():
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[f'echo {prepare_ligands.output}']
+            arguments=perform_docking_cmd
         )
+
+        prepare_ligands_cmd >> prepare_ligands
+        perform_docking_cmd >> perform_docking
 
         prepare_ligands >> perform_docking
 
