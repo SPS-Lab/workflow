@@ -49,16 +49,22 @@ def test_dag():
 
     @task_group
     def docking(batch_label:str):
-        @task
-        def prepare_ligands(batch_label: str):
-            print('prepare_ligands')
-            return 'coucou'
+
+        prepare_ligands = KubernetesPodOperator(
+            namespace=namespace,
+            task_id='prepare_ligands',
+            image="alpine",
+            cmds=["sh", "-c", 
+                f'echo \\"{batch_label} coucou\\" > /airflow/xcom/return.json'
+            ],
+            do_xcom_push=True,
+        )
 
         @task
         def perform_docking(batch_label: str):
             print('perform_docking')
 
-        prepare_receptor >> perform_docking(prepare_ligands(batch_label))
+        prepare_receptor >> perform_docking(prepare_ligands)
             
     """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
