@@ -118,7 +118,7 @@ def autodock():
             ),
 
             cmds=get_perform_docking_cmd(batch_label),
-            get_logs=False # otherwise generates too much log
+            get_logs=True # otherwise generates too much log
         )
 
         [prepare_receptor, prepare_ligands] >> perform_docking
