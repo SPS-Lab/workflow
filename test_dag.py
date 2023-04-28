@@ -55,7 +55,7 @@ def test_dag():
             task_id='prepare_ligands',
             image="alpine",
             cmds=["sh", "-c", 
-                'echo \\"coucou {{ task_instance.xcom_pull(task_ids=\'split_sdf\') }}\\" > /airflow/xcom/return.json'
+                f'echo \\"coucou {batch_label}\\" > /airflow/xcom/return.json'
             ],
             do_xcom_push=True,
         )
