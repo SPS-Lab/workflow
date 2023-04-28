@@ -79,13 +79,16 @@ def test_dag():
             arguments=perform_docking_cmd
         )
 
-        #prepare_ligands_cmd >> prepare_ligands
-        #perform_docking_cmd >> perform_docking
-
         prepare_ligands >> perform_docking
 
+    # converts (db_label, n) to a list of batch_labels
+    batch_labels = get_batch_labels('sweetlead', split_sdf.output)
 
-    docking.expand(batch_label=split_sdf.output) >> postprocessing
+    # for each batch_label, we create a prepare_ligand + perform_docking task
+    d = docking.expand(batch_label=split_sdf.output)
+    
+    # add post-processing
+    d >> postprocessing
 
 
 test_dag()
