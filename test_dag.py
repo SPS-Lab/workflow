@@ -54,7 +54,7 @@ def test_dag():
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[f'echo {batch_label.value}']
+            arguments=[f'echo {batch_label}']
         )
 
         perform_docking = KubernetesPodOperator(
