@@ -80,8 +80,6 @@ def test_dag():
 
     d = docking.expand(batch_label=batch_labels)
 
-
-    prepare_receptor
     docking >> postprocessing
 
 
