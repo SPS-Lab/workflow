@@ -37,12 +37,15 @@ def test_dag():
         cmds=["sh", "-c", 'echo ["a", "b", "c"] > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
+
+    postprocessing = BashOperator(
+        task_id='postprocessing',
+        bash_command='echo "I am task postprocessing" && sleep 1'
+    )
+
     @task
     def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n)]
-
-    batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
-
 
     @task_group()
     def docking(batch_label:str):
@@ -53,6 +56,8 @@ def test_dag():
         @task
         def perform_docking(batch_label: str):
             print('perform_docking')
+
+        prepare_receptor >> perform_docking
 
         prepare_ligands(batch_label) >> perform_docking(batch_label)
             
@@ -71,16 +76,14 @@ def test_dag():
     ).expand(arguments=batch_labels)
     """
 
-    docking.expand(batch_label=batch_labels)
+    batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    postprocessing = BashOperator(
-        task_id='postprocessing',
-        bash_command='echo "I am task postprocessing" && sleep 1'
-    )
+    d = docking.expand(batch_label=batch_labels)
 
-    prepare_ligands  >> perform_docking
-    prepare_receptor >> perform_docking
-    perform_docking >> postprocessing
+
+    prepare_receptor
+    docking >> postprocessing
+
 
 test_dag()
     
