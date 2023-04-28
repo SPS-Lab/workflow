@@ -55,7 +55,7 @@ def test_dag():
             return [f'echo \\"coucou_{x}\\" > /airflow/xcom/return.json']
 
         @task 
-        def get_prepare_ligands_cmd(x):
+        def get_perform_docking_cmd(x):
             return [f'echo DOCKING filelist_{x}']
 
         prepare_ligands_cmd = get_prepare_ligands_cmd(batch_label)
