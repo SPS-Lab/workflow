@@ -52,16 +52,18 @@ def test_dag():
 
         @task
         def get_prepare_ligands_cmd(x): 
-            return [f'echo \\"coucou_{batch_label}\\" > /airflow/xcom/return.json']
+            return [f'echo \\"coucou_{x}\\" > /airflow/xcom/return.json']
 
-        x = get_prepare_ligands_cmd(batch_label)
+        @task 
+        def get_prepare_ligands_cmd(x):
+            return [f'echo DOCKING filelist_{x}']
 
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=x,
+            arguments=get_prepare_ligands_cmd(batch_label),
             get_logs=True,
             do_xcom_push=True
         )
@@ -74,7 +76,7 @@ def test_dag():
             arguments=[f'echo {prepare_ligands.output}']
         )
 
-        x >> prepare_ligands >> perform_docking
+        prepare_ligands >> perform_docking
 
     docking.expand(batch_label=split_sdf.output) >> postprocessing
 
