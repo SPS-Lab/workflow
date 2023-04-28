@@ -47,12 +47,11 @@ def test_dag():
             cmds=["sh", "-c", f'echo docking: barabra'],
         )"""
 
-
         prepare_ligands = KubernetesPodOperator(
             namespace=namespace,
             task_id='prepare_ligands',
             image="alpine",
-            cmds=["sh", "-c", f'echo preparing: {batch_label}'],
+            cmds=["sh", "-c", f'echo preparing: barabra'],
         )
 
         perform_docking = KubernetesPodOperator(
@@ -63,9 +62,11 @@ def test_dag():
         )
         
         prepare_ligands >> perform_docking
-        
+        prepare_receptor >> perform_docking
+    
+    # Convert 'N batches' to [batch1, batch2, ... batchN]
     @task
-    def get_batch_labels(db_label:str, n:int):
+    def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n)]
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
@@ -77,6 +78,6 @@ def test_dag():
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    prepare_receptor >> docked >> postprocessing
+    docked >> postprocessing
 
 test_dag()
