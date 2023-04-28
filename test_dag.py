@@ -63,7 +63,7 @@ def test_dag():
     def docking(batch_label: str):
 
         @task
-        def prepare_ligand(batch_label: str):
+        def prepare_ligands(batch_label: str):
             return batch_label
 
         @task
