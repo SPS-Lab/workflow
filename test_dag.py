@@ -49,12 +49,18 @@ def test_dag():
 
     @task_group
     def docking(batch_label: str):
+
+        @task
+        def t(x): return x
+
+        x = t(batch_label)
+
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[f'echo {batch_label}']
+            arguments=[f'echo {x}']
         )
 
         perform_docking = KubernetesPodOperator(
@@ -65,7 +71,7 @@ def test_dag():
             arguments=[f'echo {prepare_ligands.output}']
         )
 
-        prepare_ligands >> perform_docking
+        x >> prepare_ligands >> perform_docking
 
     docking.expand(batch_label=split_sdf.output) >> postprocessing
 
