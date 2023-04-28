@@ -1,7 +1,7 @@
 from airflow import DAG, XComArg
 from airflow.models.xcom_arg import MapXComArg
 from airflow.models.param import Param
-from airflow.decorators import dag, task
+from airflow.decorators import dag, task, task_group
 from airflow.configuration import conf
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
@@ -23,7 +23,10 @@ params = {
 
     # label of the ligand database, the filename for 
     # the corresponding database must be '{db_label}.sdf'
-    'ligand_db': 'sweetlead'
+    'ligand_db': 'sweetlead',
+
+    # number of ligands per chunk
+    'ligands_chunk_size': 1000,
 }
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
@@ -66,43 +69,20 @@ def autodock():
         cmds=['/autodock/scripts/1a_fetch_prepare_protein.sh', '{{ params.pdbid }}'],
     )
 
-    # --- Split the SDF file ---
-    cmd_split_sdf = (
-        '/autodock/scripts/split_sdf.sh 1000 {{ params.ligand_db }} | ' +
-        
-        # converts the returned lines to a JSON array
-        r'xargs printf \"%s\", | sed "s/^\(.*\).$/[\1]/" > /airflow/xcom/return.json'
-    )
+    # split_sdf: <n> <db_label> ->  N_batches
     split_sdf = KubernetesPodOperator(
         task_id='split_sdf',
         full_pod_spec=full_pod_spec,
 
-        cmds = ['/bin/sh', '-c', cmd_split_sdf],
+        cmds = ['/bin/sh', '-c'],
+        arguments=['/autodock/scripts/split_sdf.sh {{ params.ligands_chunk_size }} {{ params.ligand_db }} > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
 
-    # 1b - Prepare the ligands
-    prepare_ligands = KubernetesPodOperator.partial(
-        task_id='prepare_ligands',
-        full_pod_spec=full_pod_spec,
+    @task
+    def get_batch_labels(db_label: str, n: int):
+        return [f'{db_label}_batch{i}' for i in range(n)]
 
-        cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
-
-    ).expand(arguments=split_sdf.output.map(lambda fname: [fname]))
-
-    # 2 - Perform docking
-    docking = KubernetesPodOperator(
-        task_id='docking',
-        full_pod_spec=full_pod_spec_gpu,
-        container_resources=k8s.V1ResourceRequirements(
-            limits={"nvidia.com/gpu": "1"}
-        ),
-
-        cmds=['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
-        # get_logs=False # otherwise generates too much log
-    )
-
-    # 3 - Post-processing (extracting relevant data)
     postprocessing = KubernetesPodOperator(
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
@@ -110,6 +90,47 @@ def autodock():
         cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
-    [prepare_receptor, prepare_ligands] >> docking >> postprocessing
+    @task_group
+    def docking(batch_label: str):
+        @task
+        def get_prepare_ligands_cmd(batch_label): 
+            return [f'/autodock/scripts/1b_prepare_ligands.sh {batch_label}']
+        
+        # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
+        prepare_ligands = KubernetesPodOperator(
+            task_id='prepare_ligands',
+            namespace=namespace,
+            image='alpine',
+            cmds=['sh', '-c'],
+            arguments=get_prepare_ligands_cmd(batch_label),
+            get_logs=True,
+        )
+
+        @task 
+        def get_perform_docking_cmd(batch_label):
+            return ['/autodock/scripts/2_docking.sh {{ params.pdbid }}' + f'{batch_label}']
+
+        # perform_docking: <filelist> -> ()
+        perform_docking = KubernetesPodOperator(
+            task_id='perform_docking',
+            full_pod_spec=full_pod_spec_gpu,
+            container_resources=k8s.V1ResourceRequirements(
+                limits={"nvidia.com/gpu": "1"}
+            ),
+
+            cmds=get_perform_docking_cmd(batch_label),
+            get_logs=False # otherwise generates too much log
+        )
+
+        prepare_ligands >> perform_docking
+
+    # converts (db_label, n) to a list of batch_labels
+    batch_labels = get_batch_labels('sweetlead', split_sdf.output)
+
+    # for each batch_label, we create a prepare_ligand + perform_docking task
+    d = docking.expand(batch_label=split_sdf.output)
+    
+    # add post-processing
+    d >> postprocessing
 
 autodock()
