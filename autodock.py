@@ -79,16 +79,17 @@ def autodock():
         do_xcom_push=True,
     )
 
-    @task
-    def get_batch_labels(db_label: str, n: int):
-        return [f'{db_label}_batch{i}' for i in range(n)]
-
     postprocessing = KubernetesPodOperator(
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
 
         cmds=['/autodock/scripts/3_post_processing.sh', '{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
+
+    @task
+    def get_batch_labels(db_label: str, n: int):
+        return [f'{db_label}_batch{i}' for i in range(n)]
+
 
     @task_group
     def docking(batch_label: str):
