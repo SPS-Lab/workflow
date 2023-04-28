@@ -55,7 +55,7 @@ def test_dag():
             task_id='prepare_ligands',
             image="alpine",
             cmds=["sh", "-c", 
-                f'echo \\"{batch_label} coucou\\" > /airflow/xcom/return.json'
+                f'echo \\"coucou\\" > /airflow/xcom/return.json'
             ],
             do_xcom_push=True,
         )
