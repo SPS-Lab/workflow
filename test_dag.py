@@ -34,50 +34,36 @@ def test_dag():
         namespace=namespace,
         task_id='split_sdf',
         image="alpine",
-        cmds=["sh", "-c", 'echo 10 > /airflow/xcom/return.json'],
+        cmds=["sh", "-c", 'echo ["a", "b", "c"] > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
 
-    @task_group
-    def docking(batch_label: str):
-        """prepare_ligands = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='prepare_ligands',
-            image="alpine",
-            cmds=["sh", "-c", f'echo docking: barabra'],
-        )"""
+    prepare_ligands = KubernetesPodOperator.partial(
+        namespace=namespace,
+        task_id='prepare_ligands',
+        image="alpine",
+        cmds=["sh", "-c", f'echo preparing: barabra'],
+    ).expand(arguments=split_sdf.output)
 
-        prepare_ligands = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='prepare_ligands',
-            image="alpine",
-            cmds=["sh", "-c", f'echo preparing: barabra'],
-        )
-
-        perform_docking = KubernetesPodOperator(
-            namespace=namespace,
-            task_id='perform_docking',
-            image="alpine",
-            cmds=["sh", "-c", f'echo docking: barabra'],
-        )
-        
-        prepare_ligands >> perform_docking
-        prepare_receptor >> perform_docking
-    
-    # Convert 'N batches' to [batch1, batch2, ... batchN]
-    @task
-    def get_batch_labels(db_label: str, n: int):
-        return [f'{db_label}_batch{i}' for i in range(n)]
-
-    batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
-
-    docked = docking.expand(batch_label=batch_labels)
+    perform_docking = KubernetesPodOperator(
+        namespace=namespace,
+        task_id='perform_docking',
+        image="alpine",
+        cmds=["sh", "-c", f'echo docking: barabra'],
+    )
 
     postprocessing = BashOperator(
         task_id='postprocessing',
         bash_command='echo "I am task postprocessing" && sleep 1'
     )
 
-    docked >> postprocessing
+    prepare_ligands  >> perform_docking
+    prepare_receptor >> perform_docking
+    perform_docking >> postprocessing
 
 test_dag()
+    
+"""# Convert 'N batches' to [batch1, batch2, ... batchN]
+@task
+def get_batch_labels(db_label: str, n: int):
+    return [f'{db_label}_batch{i}' for i in range(n)]"""
