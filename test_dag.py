@@ -58,23 +58,10 @@ def test_dag():
         def get_perform_docking_cmd(x):
             return [f'echo DOCKING filelist_{x}']
 
-        # prepare_ligands_cmd = get_prepare_ligands_cmd(batch_label)
+        prepare_ligands_cmd = get_prepare_ligands_cmd(batch_label)
         perform_docking_cmd = get_perform_docking_cmd(batch_label)
 
-        @task
-        def prepare_ligands(x):
-            kpo = KubernetesPodOperator(
-                task_id='prepare_ligands',
-                namespace=namespace,
-                image='alpine',
-                cmds=['sh', '-c'],
-                arguments=[f'echo \\"coucou_{x}\\" > /airflow/xcom/return.json'],
-                get_logs=True,
-                do_xcom_push=True
-            )
-            return kpo.output['return_value']
-
-        """prepare_ligands = KubernetesPodOperator(
+        prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             namespace=namespace,
             image='alpine',
@@ -82,7 +69,7 @@ def test_dag():
             arguments=prepare_ligands_cmd,
             get_logs=True,
             do_xcom_push=True
-        )"""
+        )
 
         perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
@@ -92,12 +79,10 @@ def test_dag():
             arguments=perform_docking_cmd
         )
 
-        p = prepare_ligands(batch_label)
-
         #prepare_ligands_cmd >> prepare_ligands
         #perform_docking_cmd >> perform_docking
 
-        p >> perform_docking
+        prepare_ligands >> perform_docking
 
 
     docking.expand(batch_label=split_sdf.output) >> postprocessing
