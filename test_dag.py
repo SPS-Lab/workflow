@@ -55,7 +55,7 @@ def test_dag():
             task_id='prepare_ligands',
             image="alpine",
             cmds=["sh", "-c", 
-                f'echo \\"coucou {{ task_instance.xcom_pull(taks_ids=\'split_sdf\') }}\\" > /airflow/xcom/return.json'
+                'echo \\"coucou {{ task_instance.xcom_pull(taks_ids=\'split_sdf\') }}\\" > /airflow/xcom/return.json'
             ],
             do_xcom_push=True,
         )
@@ -65,7 +65,7 @@ def test_dag():
             task_id='perform_docking',
             image="alpine",
             cmds=["sh", "-c", 
-                f'echo \\"coucou {{ task_instance.xcom_pull(taks_ids=\'prepare_ligands\') }}\\" > /airflow/xcom/return.json'
+                'echo \\"coucou {{ task_instance.xcom_pull(taks_ids=\'prepare_ligands\') }}\\" > /airflow/xcom/return.json'
             ],
             do_xcom_push=True,
         )
