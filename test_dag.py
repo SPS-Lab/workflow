@@ -37,20 +37,25 @@ def test_dag():
         cmds=["sh", "-c", 'echo ["a", "b", "c"] > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
+    @task
+    def get_batch_labels(db_label: str, n: int):
+        return [f'{db_label}_batch{i}' for i in range(n)]
+
+    batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
     prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
         task_id='prepare_ligands',
         image="alpine",
         cmds=["sh", "-c", f'echo preparing: barabra'],
-    ).expand(arguments=split_sdf.output)
+    ).expand(arguments=batch_labels)
 
-    perform_docking = KubernetesPodOperator(
+    perform_docking = KubernetesPodOperator.partial(
         namespace=namespace,
         task_id='perform_docking',
         image="alpine",
         cmds=["sh", "-c", f'echo docking: barabra'],
-    )
+    ).expand(arguments=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
