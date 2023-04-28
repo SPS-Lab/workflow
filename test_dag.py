@@ -74,9 +74,9 @@ def test_dag():
     ).expand(arguments=batch_labels)
     """
 
-    batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
+    # batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    d = docking.expand(batch_label=batch_labels)
+    d = docking.expand(batch_label=split_sdf.output)
 
     d >> postprocessing
 
