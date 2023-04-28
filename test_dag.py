@@ -52,7 +52,7 @@ def test_dag():
 
         @task
         def t(x): 
-            return 'echo coucou_' + x
+            return ['echo coucou_' + x]
 
         x = t(batch_label)
 
@@ -61,7 +61,7 @@ def test_dag():
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[x],
+            arguments=x,
             get_logs=True,
         )
 
