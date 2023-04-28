@@ -88,7 +88,7 @@ def autodock():
 
     @task
     def get_batch_labels(db_label: str, n: int):
-        return [f'{db_label}_batch{i}' for i in range(n)]
+        return [f'{db_label}_batch{i}' for i in range(n+1)]
 
 
     @task_group
