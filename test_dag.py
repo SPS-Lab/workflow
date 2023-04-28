@@ -64,7 +64,6 @@ def test_dag():
 
         @task
         def prepare_ligands(batch_label: str):
-
             kpo = KubernetesPodOperator(
                 task_id='prepare_ligands',
                 namespace=namespace,
@@ -72,7 +71,7 @@ def test_dag():
                 cmds=['sh', '-c'],
                 arguments=[f'echo {batch_label}']
             )
-            return kpo.output
+            return kpo
 
         @task
         def perform_docking(batch_label: str):
