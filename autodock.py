@@ -116,6 +116,7 @@ def autodock():
             container_resources=k8s.V1ResourceRequirements(
                 limits={"nvidia.com/gpu": "1"}
             ),
+            pool_slots=1,
 
             cmds=get_perform_docking_cmd(batch_label),
             get_logs=True # otherwise generates too much log
