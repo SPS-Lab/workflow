@@ -55,16 +55,18 @@ def test_dag():
             task_id='prepare_ligands',
             image="alpine",
             cmds=["sh", "-c", 
-                f'echo \\"coucou\\" > /airflow/xcom/return.json'
+                f'echo \\"coucou {{ task_instance.xcom_pull(taks_ids=\'split_sdf\') }}\\" > /airflow/xcom/return.json'
             ],
             do_xcom_push=True,
         )
 
         @task
-        def perform_docking(batch_label: str):
-            print('perform_docking')
+        def perform_docking(**context):
+            t = context['ti'].xcom_pull(task_ids=['prepare_ligands'])
 
-        prepare_receptor >> perform_docking(prepare_ligands)
+            print(f'perform_docking {t}')
+
+        prepare_ligands >> perform_docking(batch_label)
             
     """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
