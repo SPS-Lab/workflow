@@ -54,7 +54,7 @@ def test_dag():
         def get_prepare_ligands_cmd(x): 
             return [f'echo \\"coucou_{batch_label}\\" > /airflow/xcom/return.json']
 
-        x = t(batch_label)
+        x = get_prepare_ligands_cmd(batch_label)
 
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
