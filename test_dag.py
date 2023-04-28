@@ -47,7 +47,7 @@ def test_dag():
     def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n)]
 
-    @task_group()
+    @task_group
     def docking(batch_label:str):
         @task
         def prepare_ligands(batch_label: str):
@@ -57,8 +57,7 @@ def test_dag():
         def perform_docking(batch_label: str):
             print('perform_docking')
 
-        prepare_receptor >> perform_docking
-        prepare_ligands  >> perform_docking
+        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking(batch_label)
             
     """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
