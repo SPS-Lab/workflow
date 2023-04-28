@@ -43,7 +43,20 @@ def test_dag():
 
     batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
 
-    prepare_ligands = KubernetesPodOperator.partial(
+
+    @task_group()
+    def docking(batch_label:str):
+        @task
+        def prepare_ligands(batch_label: str):
+            print('prepare_ligands')
+
+        @task
+        def perform_docking(batch_label: str):
+            print('perform_docking')
+
+        prepare_ligand(batch_label) >> perform_docking(batch_label)
+            
+    """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
         task_id='prepare_ligands',
         image="alpine",
@@ -56,6 +69,9 @@ def test_dag():
         image="alpine",
         cmds=["sh", "-c", f'echo docking: barabra'],
     ).expand(arguments=batch_labels)
+    """
+
+    docking.expand(batch_label=batch_labels)
 
     postprocessing = BashOperator(
         task_id='postprocessing',
