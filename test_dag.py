@@ -58,30 +58,25 @@ def test_dag():
                 **kwargs
             )
 
-
-    @task_group
+    @task
     def docking(batch_label: str):
-
-
-        @task
-        def transform(x):
-            return x
-
-        bl = transform(batch_label)
-
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[f'echo {bl}']
+            arguments=[f'echo {batch_label}']
         )
 
-        @task
-        def perform_docking(batch_label: str):
-            return batch_label
+        perform_docking = KubernetesPodOperator(
+            task_id='perform_docking',
+            namespace=namespace,
+            image='alpine',
+            cmds=['sh', '-c'],
+            arguments=[f'echo {prepare_ligands.output}']
+        )
 
-        bl >> prepare_ligands >> perform_docking(batch_label)
+        prepare_ligands >> perform_docking
             
     """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
