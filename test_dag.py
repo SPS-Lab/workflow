@@ -72,7 +72,7 @@ def test_dag():
                 get_logs=True,
                 do_xcom_push=True
             )
-            return kpo.output
+            return kpo.output['return_value']
 
         """prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
