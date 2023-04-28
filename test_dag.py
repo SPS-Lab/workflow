@@ -34,7 +34,7 @@ def test_dag():
         namespace=namespace,
         task_id='split_sdf',
         image="alpine",
-        cmds=["sh", "-c", 'echo [\"a\", \"b\", \"c\"] > /airflow/xcom/return.json'],
+        cmds=["sh", "-c", 'echo [\\"a\", \\"b\", \\"c\\"] > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
 
