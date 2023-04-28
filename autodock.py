@@ -94,8 +94,8 @@ def autodock():
     @task_group
     def docking(batch_label: str):
         @task
-        def get_prepare_ligands_cmd(batch_label): 
-            return ['/autodock/scripts/1b_prepare_ligands.sh', '{{ params.pdbid }}', f'{batch_label}']
+        def get_prepare_ligands_cmd(batch_label, params=None): 
+            return ['/autodock/scripts/1b_prepare_ligands.sh', f'{ params["pdbid"] }', f'{batch_label}']
         
         # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
         prepare_ligands = KubernetesPodOperator(
@@ -106,8 +106,8 @@ def autodock():
         )
 
         @task 
-        def get_perform_docking_cmd(batch_label):
-            return ['/autodock/scripts/2_docking.sh', '{{ params.pdbid }}', f'{batch_label}']
+        def get_perform_docking_cmd(batch_label, params=None):
+            return ['/autodock/scripts/2_docking.sh', f'{ params["pdbid"] }', f'{batch_label}']
 
         # perform_docking: <filelist> -> ()
         perform_docking = KubernetesPodOperator(
