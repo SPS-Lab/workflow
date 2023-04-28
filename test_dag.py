@@ -47,17 +47,24 @@ def test_dag():
     def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n)]
 
+    class PrepareLigandOperator(KubernetesPodOperator):
+        def __init__(self, batch_label: str, **kwargs):
+            super().__init__(
+                namespace=namespace,
+                image="alpine",
+                cmds=["sh", "-c"],
+                do_xcom_push=True,
+                arguments=[f'echo "{batch_label}" > /airflow/xcom/return.json'],
+                **kwargs
+            )
+
+
     @task_group
     def docking(batch_label: str):
 
-        prepare_ligands = KubernetesPodOperator(
-            namespace=namespace,
+        prepare_ligands = PrepareLigandOperator(
+            batch_label=batch_label,
             task_id='prepare_ligands',
-            image="alpine",
-            cmds=["sh", "-c", 
-                f'echo \\"coucou {batch_label}\\" > /airflow/xcom/return.json'
-            ],
-            do_xcom_push=True,
         )
 
         perform_docking = KubernetesPodOperator(
