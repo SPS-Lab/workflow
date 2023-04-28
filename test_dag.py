@@ -57,7 +57,8 @@ def test_dag():
         def perform_docking():
             print('perform_docking')
 
-        prepare_ligands(batch_label) >> perform_docking
+
+        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking
             
     """prepare_ligands = KubernetesPodOperator.partial(
         namespace=namespace,
