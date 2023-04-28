@@ -121,7 +121,7 @@ def autodock():
             get_logs=False # otherwise generates too much log
         )
 
-        prepare_ligands >> perform_docking
+        [prepare_receptor, prepare_ligands] >> perform_docking
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
