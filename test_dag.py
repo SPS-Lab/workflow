@@ -63,7 +63,7 @@ def test_dag():
 
         @task
         def prepare_ligands(x):
-            KubernetesPodOperator(
+            kpo = KubernetesPodOperator(
                 task_id='prepare_ligands',
                 namespace=namespace,
                 image='alpine',
@@ -72,6 +72,7 @@ def test_dag():
                 get_logs=True,
                 do_xcom_push=True
             )
+            return kpo.output
 
         """prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
