@@ -63,6 +63,7 @@ def test_dag():
             cmds=['sh', '-c'],
             arguments=x,
             get_logs=True,
+            do_xcom_push=True
         )
 
         perform_docking = KubernetesPodOperator(
