@@ -51,7 +51,8 @@ def test_dag():
     def docking(batch_label: str):
 
         @task
-        def t(x): return x
+        def t(x): 
+            return 'echo coucou_' + x
 
         x = t(batch_label)
 
@@ -60,7 +61,7 @@ def test_dag():
             namespace=namespace,
             image='alpine',
             cmds=['sh', '-c'],
-            arguments=[f'echo {x}'],
+            arguments=[x],
             get_logs=True,
         )
 
