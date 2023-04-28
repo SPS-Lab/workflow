@@ -52,6 +52,7 @@ def test_dag():
         @task
         def prepare_ligands(batch_label: str):
             print('prepare_ligands')
+            return 'coucou'
 
         @task
         def perform_docking(batch_label: str):
