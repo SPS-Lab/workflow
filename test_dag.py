@@ -67,7 +67,6 @@ def test_dag():
 
         prepare_ligands >> perform_docking
 
-
     docking.expand(batch_label=split_sdf.output) >> postprocessing
 
 
