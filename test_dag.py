@@ -47,18 +47,7 @@ def test_dag():
     def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n)]
 
-    class PrepareLigandOperator(KubernetesPodOperator):
-        def __init__(self, batch_label: str, **kwargs):
-            super().__init__(
-                namespace=namespace,
-                image="alpine",
-                cmds=["sh", "-c"],
-                do_xcom_push=True,
-                arguments=[f'echo "{batch_label}" > /airflow/xcom/return.json'],
-                **kwargs
-            )
-
-    @task
+    @task_group
     def docking(batch_label: str):
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
@@ -77,27 +66,10 @@ def test_dag():
         )
 
         prepare_ligands >> perform_docking
-            
-    """prepare_ligands = KubernetesPodOperator.partial(
-        namespace=namespace,
-        task_id='prepare_ligands',
-        image="alpine",
-        cmds=["sh", "-c", f'echo preparing: barabra'],
-    ).expand(arguments=batch_labels)
 
-    perform_docking = KubernetesPodOperator.partial(
-        namespace=namespace,
-        task_id='perform_docking',
-        image="alpine",
-        cmds=["sh", "-c", f'echo docking: barabra'],
-    ).expand(arguments=batch_labels)
-    """
 
-    # batch_labels = get_batch_labels(db_label='barabra', n=split_sdf.output)
+    docking.expand(batch_label=split_sdf.output) >> postprocessing
 
-    d = docking.expand(batch_label=split_sdf.output)
-
-    d >> postprocessing
 
 test_dag()
     
