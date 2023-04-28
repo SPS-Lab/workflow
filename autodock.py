@@ -128,7 +128,7 @@ def autodock():
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
 
     # for each batch_label, we create a prepare_ligand + perform_docking task
-    d = docking.expand(batch_label=split_sdf.output)
+    d = docking.expand(batch_label=batch_labels)
     
     # add post-processing
     d >> postprocessing
