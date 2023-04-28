@@ -26,7 +26,7 @@ params = {
     'ligand_db': 'sweetlead',
 
     # number of ligands per chunk
-    'ligands_chunk_size': 1000,
+    'ligands_chunk_size': 1000000,
 }
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
