@@ -52,7 +52,7 @@ def test_dag():
 
         @task
         def t(x): 
-            return ['echo coucou_' + x]
+            return [f'echo \\"coucou_{x}\\" > /airflow/xcom/return.json']
 
         x = t(batch_label)
 
