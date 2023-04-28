@@ -100,8 +100,7 @@ def autodock():
         # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
-            namespace=namespace,
-            image='alpine',
+            full_pod_spec=full_pod_spec,
             cmds=['sh', '-c'],
             arguments=get_prepare_ligands_cmd(batch_label),
             get_logs=True,
