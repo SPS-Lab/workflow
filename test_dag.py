@@ -51,8 +51,8 @@ def test_dag():
     def docking(batch_label: str):
 
         @task
-        def t(x): 
-            return [f'echo \\"coucou_{x}\\" > /airflow/xcom/return.json']
+        def get_prepare_ligands_cmd(x): 
+            return [f'echo \\"coucou_{batch_label}\\" > /airflow/xcom/return.json']
 
         x = t(batch_label)
 
