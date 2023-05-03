@@ -10,7 +10,7 @@ from airflow.configuration import conf
 from airflow import XComArg
 from airflow.models.xcom_arg import MapXComArg
 
-from collections.abc import Sequence
+from typing import Sequence
 from kubernetes.client import models as k8s
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
