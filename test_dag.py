@@ -141,12 +141,12 @@ def test_dag():
         )
 
         # perform_docking: <filelist> -> ()
-        perform_docking = PerformDockingOperator(
+        """perform_docking = PerformDockingOperator(
             task_id='perform_docking',
             get_logs=True, # otherwise generates too much lo
 
             batch_label=batch_label
-        )
+        )"""
 
         @task
         def perform_docking(batch_label, **context):
