@@ -17,17 +17,24 @@ namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 class PrepareLigandOperator(KubernetesPodOperator):
 
-    template_fields = KubernetesPodOperator.template_fields + ("batch_label",)
+    template_fields = (*KubernetesPodOperator.template_fields, "batch_label")
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ batch_label }})"; sleep 1'],
+            # arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ batch_label }})"; sleep 1'],
             **kwargs
         )
         self.batch_label = batch_label
+
+    def execute(self, context):
+        self.arguments = [
+            f'echo "prepare_ligands({ context.params.pdbid }, { self.batch_label })"; sleep 1'
+        ]
+        
+        super().execute(context)
 
 PVC_NAME = 'pvc-autodock'
 MOUNT_PATH = '/data'
