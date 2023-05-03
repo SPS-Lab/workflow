@@ -152,6 +152,7 @@ def test_dag():
         def perform_docking(batch_label, **context):
             # perform_docking: <filelist> -> ()
             op = GpuAutoDockPodOperator(
+                task_id=context['task_id'],
                 get_logs=True,
 
                 arguments = [
