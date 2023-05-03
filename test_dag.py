@@ -36,7 +36,8 @@ params = {
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 @dag(start_date=datetime(2021, 1, 1), 
-    schedule=None, default_args=params)
+    schedule=None, 
+    params=params)
 def test_dag(): 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
