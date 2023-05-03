@@ -31,7 +31,7 @@ class PrepareLigandOperator(KubernetesPodOperator):
 
     def execute(self, context):
         self.arguments = [
-            f'echo "prepare_ligands({ context.params.pdbid }, { self.batch_label })"; sleep 1'
+            f'echo "prepare_ligands({ context["params"].pdbid }, { self.batch_label })"; sleep 1'
         ]
         
         super().execute(context)
