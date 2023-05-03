@@ -15,6 +15,11 @@ from kubernetes.client import models as k8s
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
+"""
+Class to define a new operator, which allows to parametrize the batch_label,
+instead of relying on a "get_prepare_ligand_cmd" to create a parametrized
+command.
+"""
 class PrepareLigandOperator(KubernetesPodOperator):
 
     template_fields = (*KubernetesPodOperator.template_fields, "batch_label")
@@ -24,7 +29,6 @@ class PrepareLigandOperator(KubernetesPodOperator):
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            # arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ batch_label }})"; sleep 1'],
             **kwargs
         )
         self.batch_label = batch_label
@@ -33,7 +37,30 @@ class PrepareLigandOperator(KubernetesPodOperator):
         self.arguments = [
             f'echo "prepare_ligands({ context["params"]["pdbid"] }, { self.batch_label })"; sleep 1'
         ]
-        
+        super().execute(context)
+
+"""
+Class to define a new operator, which allows to parametrize the batch_label,
+instead of relying on a "get_perform_docking_cmd" to create a parametrized
+command.
+"""
+class PerformDockingOperator(KubernetesPodOperator):
+
+    template_fields = (*KubernetesPodOperator.template_fields, "batch_label")
+
+    def __init__(self, batch_label: str, **kwargs):
+        super().__init__(
+            namespace=namespace,
+            image="alpine",
+            cmds=["sh", "-c"],
+            **kwargs
+        )
+        self.batch_label = batch_label
+
+    def execute(self, context):
+        self.arguments = [
+            f'echo "perform_docking({ context["params"]["pdbid"] }, { self.batch_label })"; sleep 6'
+        ]
         super().execute(context)
 
 PVC_NAME = 'pvc-autodock'
@@ -107,25 +134,19 @@ def test_dag():
 
     @task_group
     def docking(batch_label: str):
-        @task
-        def get_prepare_ligands_cmd(batch_label, params=None): 
-            return ['/bin/sh', '-c', f'echo "prepare_ligands({ params["pdbid"] }, {batch_label})"; sleep 1']
         
         # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
-        prepare_ligands = PrepareLigandOperator(batch_label=batch_label, task_id='prepare_ligands')
-        """KubernetesPodOperator(
+        prepare_ligands = PrepareLigandOperator(
+            batch_label=batch_label, 
+            
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
-            cmds=get_prepare_ligands_cmd(batch_label),
             get_logs=True,
-        )"""
-
-        @task 
-        def get_perform_docking_cmd(batch_label, params=None):
-            return ['/bin/sh', '-c', f'echo "perform_docking({ params["pdbid"] }, { batch_label })"; sleep 6']
+        )
 
         # perform_docking: <filelist> -> ()
-        perform_docking = KubernetesPodOperator(
+        perform_docking = PerformDockingOperator(
+            batch_label=batch_label,
             task_id='perform_docking',
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
