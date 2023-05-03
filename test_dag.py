@@ -10,19 +10,24 @@ from airflow.configuration import conf
 from airflow import XComArg
 from airflow.models.xcom_arg import MapXComArg
 
+from collections.abc import Sequence
 from kubernetes.client import models as k8s
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 class PrepareLigandOperator(KubernetesPodOperator):
-    def __init__(self, sdf_name:str, **kwargs):
+
+    template_fields: Sequence[str] = ("batch_label",)
+
+    def __init__(self, batch_label: str, **kwargs):
         super().__init__(
             namespace=namespace,
             image="alpine",
             cmds=["sh", "-c"],
-            arguments=[f'sleep {random.randint(1,10)}; echo \\"{sdf_name}\\" > /airflow/xcom/return.json'],
+            arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ batch_label }})"; sleep 1'],
             **kwargs
         )
+        self.batch_label = batch_label
 
 PVC_NAME = 'pvc-autodock'
 MOUNT_PATH = '/data'
@@ -100,12 +105,13 @@ def test_dag():
             return ['/bin/sh', '-c', f'echo "prepare_ligands({ params["pdbid"] }, {batch_label})"; sleep 1']
         
         # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
-        prepare_ligands = KubernetesPodOperator(
+        prepare_ligands = PrepareLigandOperator(batch_label=batch_label, task_id='prepare_ligands')
+        """KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
             cmds=get_prepare_ligands_cmd(batch_label),
             get_logs=True,
-        )
+        )"""
 
         @task 
         def get_perform_docking_cmd(batch_label, params=None):
