@@ -147,14 +147,13 @@ def test_dag():
         # perform_docking: <filelist> -> ()
         perform_docking = PerformDockingOperator(
             batch_label=batch_label,
+            
             task_id='perform_docking',
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
                 limits={"nvidia.com/gpu": "1"}
             ),
             pool='gpu_pool',
-
-            cmds=get_perform_docking_cmd(batch_label),
             get_logs=True # otherwise generates too much log
         )
 
