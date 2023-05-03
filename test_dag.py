@@ -17,7 +17,7 @@ namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 class PrepareLigandOperator(KubernetesPodOperator):
 
-    template_fields: Sequence[str] = ("batch_label",)
+    # template_fields: Sequence[str] = ("batch_label",)
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
