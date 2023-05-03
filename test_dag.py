@@ -148,7 +148,20 @@ def test_dag():
             batch_label=batch_label
         )
 
-        [prepare_receptor, prepare_ligands] >> perform_docking
+        @task
+        def perform_docking(batch_label, **context):
+            # perform_docking: <filelist> -> ()
+            op = GpuAutoDockPodOperator(
+                task_id='perform_docking',
+                get_logs=True,
+
+                arguments = [
+                    f'echo "perform_docking({ context["params"]["pdbid"] }, { batch_label })"; sleep 6'
+                ]
+            )
+            op.execute(context)
+
+        [prepare_receptor, prepare_ligands] >> perform_docking(batch_label)
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
