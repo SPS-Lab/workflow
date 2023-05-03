@@ -97,6 +97,7 @@ params = {
     'pdbid': '7cpa',
     'ligand_db': 'sweetlead',
     'ligands_chunk_size': 1000,
+    'n_batches': 10,
 }
 
 @dag(start_date=datetime(2021, 1, 1), 
@@ -108,7 +109,7 @@ def test_dag():
     prepare_receptor = GenericAutoDockPodOperator(
         task_id='prepare_receptor',
 
-        arguments=['echo "fetch_prepare_protein({{ params.pdbid }})"; sleep 1'],
+        arguments=['echo "fetch_prepare_protein({{ params.pdbid }})"; sleep 10'],
     )
 
     # split_sdf: <n> <db_label> ->  N_batches
@@ -116,13 +117,13 @@ def test_dag():
         task_id='split_sdf',
         do_xcom_push=True,
 
-        arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 3; echo 2 > /airflow/xcom/return.json'],
+        arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 5; echo {{ params.n_batches }} > /airflow/xcom/return.json'],
     )
 
     postprocessing = GenericAutoDockPodOperator(
         task_id='postprocessing',
 
-        arguments=['echo "postprocessing({{ params.pdbid }}, {{ params.ligand_db }})"; sleep 2'],
+        arguments=['echo "postprocessing({{ params.pdbid }}, {{ params.ligand_db }})"; sleep 3'],
     )
 
     @task
@@ -140,8 +141,8 @@ def test_dag():
             batch_label=batch_label, 
         )
 
-        # perform_docking: <filelist> -> ()
-        """perform_docking = PerformDockingOperator(
+        """# perform_docking: <filelist> -> ()
+        perform_docking = PerformDockingOperator(
             task_id='perform_docking',
             get_logs=True, # otherwise generates too much lo
 
