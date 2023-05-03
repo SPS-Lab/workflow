@@ -17,7 +17,7 @@ namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
 class PrepareLigandOperator(KubernetesPodOperator):
 
-    # template_fields: Sequence[str] = ("batch_label",)
+    template_fields = KubernetesPodOperator.template_fields + ("batch_label",)
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
@@ -82,7 +82,7 @@ def test_dag():
         full_pod_spec=full_pod_spec,
 
         cmds = ['/bin/sh', '-c'],
-        arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 3; echo 5 > /airflow/xcom/return.json'],
+        arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 3; echo 2 > /airflow/xcom/return.json'],
         do_xcom_push=True,
     )
 
