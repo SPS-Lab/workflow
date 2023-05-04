@@ -140,8 +140,8 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/usr/bin/xargs', 'sleep', '5', '&&', 'printf', 'prepare_ligands(%s, %s)'],
-            arguments=['{{ params.pdbid }}', batch_label]
+            cmds=['printf', 'prepare_ligands(%s, %s)'],
+            arguments=['{{ params.pdbid }}', batch_label, '&&', 'echo', 'coucou']
         )
 
         perform_docking = KubernetesPodOperator(
