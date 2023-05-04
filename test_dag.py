@@ -31,7 +31,7 @@ Wrapper around KubernetesPodOperator to allow parametrization of
 command.
 """
 class PrepareLigandsOperator(KubernetesPodOperator):
-    # template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
+    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
