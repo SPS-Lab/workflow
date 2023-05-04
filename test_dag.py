@@ -142,7 +142,7 @@ def test_dag():
 
             cmds=['/bin/sh', '-c', 'echo prepare_ligands'],  # get_prepare_ligands_cmd(batch_label),
             #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
-            arguments=[batch_label]
+            arguments=[str(batch_label) + ' coucou']
         )
 
         """@task
