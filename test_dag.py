@@ -139,7 +139,9 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=get_prepare_ligands_cmd(batch_label),
+            #cmds=get_prepare_ligands_cmd(batch_label),
+            cmds=['/bin/sh', '-c', 'echo $BATCH_LABEL'],
+            env_vars={'BATCH_LABEL': batch_label}
         )
 
         @task
@@ -158,8 +160,7 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/bin/sh', '-c'],
-            batch_label=batch_label
+            cmds=['/bin/sh', '-c', 'echo docking'],
         )
 
         [prepare_receptor, prepare_ligands] >> perform_docking
