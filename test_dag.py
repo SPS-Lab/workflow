@@ -140,17 +140,9 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/usr/bin/xargs', 'printf', 'prepare_ligands(%s, %s)'],
+            cmds=['/usr/bin/xargs', 'sleep', '5', '&&', 'printf', 'prepare_ligands(%s, %s)'],
             arguments=['{{ params.pdbid }}', batch_label]
         )
-
-        """@task
-        def get_perform_docking_cmd(batch_label, params=None):
-            cmd = 'echo "perform_docking({}, {})"; sleep {}'.format(
-                params["pdbid"], batch_label, random.randint(15, 30)
-            )
-
-            return ['/bin/sh', '-c', cmd]"""
 
         perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
@@ -160,8 +152,8 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/bin/sh', '-c'],
-            arguments=['echo docking'],
+            cmds=['/usr/bin/xargs', 'printf', 'perform_docking(%s, %s)'],
+            arguments=['{{ params.pdbid }}', batch_label]
         )
 
         [prepare_receptor, prepare_ligands] >> perform_docking
@@ -170,9 +162,6 @@ def test_dag():
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
 
     # for each batch_label, we create a prepare_ligand + perform_docking task
-
-    print(type(batch_labels))
-
     d = docking.expand(batch_label=batch_labels)
     
     # add post-processing
