@@ -38,7 +38,7 @@ class PrepareLigandsOperator(KubernetesPodOperator):
 
         super().__init__(
             arguments = ['echo "prepare_ligands({}, {})"; sleep 8'.format(
-                '{{ params.pdbid }}', str(self.batch_label)
+                '{{ params.pdbid }}', "{{ ti.xcom_pull(key='batch_label') }}"
             )],
             **kwargs
         )
