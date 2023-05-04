@@ -37,9 +37,6 @@ class PrepareLigandsOperator(KubernetesPodOperator):
         self.batch_label = batch_label
 
         super().__init__(
-            arguments = ['echo "prepare_ligands({}, {})"; sleep 8'.format(
-                '{{ params.pdbid }}', "{{ ti.xcom_pull(key='batch_label') }}"
-            )],
             **kwargs
         )
         
@@ -126,16 +123,31 @@ def test_dag():
     @task_group
     def docking(batch_label: str):
 
-        prepare_ligands = PrepareLigandsOperator(
+        @task
+        def get_prepare_ligands_cmd(batch_label, params=None): 
+            cmd = 'echo "prepare_ligands({}, {})"; sleep 8'.format(
+                params["pdbid"], batch_label
+            )
+
+            return ['/bin/sh', '-c', template_cmd]
+
+        prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/bin/sh', '-c'],
-            batch_label=batch_label
+            cmds=get_prepare_ligands_cmd(batch_label)
         )
 
-        perform_docking = PerformDockingOperator(
+        @task 
+        def get_perform_docking_cmd(batch_label, params=None):
+            cmd = 'echo "perform_docking({}, {})"; sleep {}'.format(
+                params["pdbid"], batch_label, random.randint(15, 30)
+            )
+
+            return ['/bin/sh', '-c', cmd]
+
+        perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
@@ -143,8 +155,7 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/bin/sh', '-c'],
-            batch_label=batch_label
+            cmds=get_perform_docking_cmd(batch_label),
         )
 
         [prepare_receptor, prepare_ligands] >> perform_docking
