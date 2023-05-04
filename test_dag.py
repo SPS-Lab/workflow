@@ -139,8 +139,8 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            #cmds=get_prepare_ligands_cmd(batch_label),
-            cmds=['/bin/sh', '-c', 'echo prepare_ligands']
+            cmds=get_prepare_ligands_cmd(batch_label),
+            #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
         )
 
         @task
