@@ -140,8 +140,7 @@ def test_dag():
             get_logs=True,
 
             #cmds=get_prepare_ligands_cmd(batch_label),
-            cmds=['/bin/sh', '-c', 'echo $BATCH_LABEL'],
-            env_vars={'BATCH_LABEL': batch_label}
+            cmds=['/bin/sh', '-c', 'echo prepare_ligands']
         )
 
         @task
