@@ -100,7 +100,7 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             pool='small_pool',
 
-            cmds=['/bin/sh', '-c', f'echo "perform_docking($0, $1)" && sleep {random.randint(15, 30)}'],
+            cmds=['/bin/sh', '-c', 'echo "perform_docking($0, $1)" && sleep $(shuf -i 15-30 -n 1)'],
             arguments=['{{ params.pdbid }}', batch_label]
         )
 
