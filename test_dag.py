@@ -140,8 +140,8 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['echo', 'prepare_ligands(%s, %s)'],
-            arguments=['{{ params.pdbid }}', batch_label, '&&', 'echo', 'coucou']
+            cmds=['/usr/bin/printf', 'prepare_ligands(%s, %s)'],
+            arguments=['{{ params.pdbid }}', str(batch_label), '&&', 'echo', 'coucou']
         )
 
         perform_docking = KubernetesPodOperator(
@@ -152,7 +152,7 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/usr/bin/xargs', 'printf', 'perform_docking(%s, %s)'],
+            cmds=['/usr/bin/printf', 'perform_docking(%s, %s)'],
             arguments=['{{ params.pdbid }}', batch_label]
         )
 
