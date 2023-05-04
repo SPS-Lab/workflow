@@ -126,14 +126,15 @@ def test_dag():
     @task_group
     def docking(batch_label: str):
 
-        @task
+        """@task
         def get_prepare_ligands_cmd(batch_label, params=None): 
             cmd = 'echo "prepare_ligands({}, {})"; sleep 8'.format(
                 params["pdbid"], batch_label
             )
 
             return ['/bin/sh', '-c', cmd]
-
+        """
+        
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
