@@ -129,7 +129,7 @@ def test_dag():
                 params["pdbid"], batch_label
             )
 
-            return ['/bin/sh', '-c', template_cmd]
+            return ['/bin/sh', '-c', cmd]
 
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
