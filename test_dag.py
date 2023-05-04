@@ -135,7 +135,6 @@ def test_dag():
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
             get_logs=True,
-            pool='gpu_pool',
 
             cmds=get_prepare_ligands_cmd(batch_label)
         )
