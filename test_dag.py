@@ -19,7 +19,17 @@ VOLUME_KEY  = 'volume-autodock'
 
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
-class BaseAutoDockPodOperator(KubernetesPodOperator):
+params = {
+    'pdbid': '7cpa',
+    'ligand_db': 'sweetlead',
+    'ligands_chunk_size': 1000,
+    'n_batches': 10,
+}
+
+@dag(start_date=datetime(2021, 1, 1), 
+    schedule=None, 
+    params=params)
+def test_dag(): 
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
@@ -36,93 +46,36 @@ class BaseAutoDockPodOperator(KubernetesPodOperator):
         image_pull_policy='Always',
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(
-            namespace=namespace,
-            cmds=['/bin/sh', '-c'],
-            **kwargs
-        )
+    pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
+    full_pod_spec = k8s.V1Pod(spec=pod_spec)
 
-class GenericAutoDockPodOperator(BaseAutoDockPodOperator):
-    def __init__(self, **kwargs):
-        pod_spec      = k8s.V1PodSpec(containers=[self.container], volumes=[self.volume])
-        full_pod_spec = k8s.V1Pod(spec=pod_spec)
-
-        super().__init__(
-            full_pod_spec=full_pod_spec,
-            **kwargs
-        )
-
-class GpuAutoDockPodOperator(BaseAutoDockPodOperator):
-    def __init__(self, **kwargs):
-        pod_spec      = k8s.V1PodSpec(containers=[self.container], volumes=[self.volume], runtime_class_name='nvidia')
-        full_pod_spec = k8s.V1Pod(spec=pod_spec)
-
-        super().__init__(
-            container_resources=k8s.V1ResourceRequirements(
-                limits={"nvidia.com/gpu": "1"}
-            ),
-            full_pod_spec=full_pod_spec,
-            pool='gpu_pool',
-            **kwargs
-        )
-
-class PrepareLigandOperator(GenericAutoDockPodOperator):
-    template_fields = (*KubernetesPodOperator.template_fields, "batch_label")
-
-    def __init__(self, batch_label: str, **kwargs):
-        super().__init__(**kwargs)
-        self.batch_label = batch_label
-
-    def execute(self, context):
-        self.arguments = [
-            f'echo "prepare_ligands({ context["params"]["pdbid"] }, { self.batch_label })"; sleep 1'
-        ]
-        super().execute(context)
-
-class PerformDockingOperator(GpuAutoDockPodOperator):
-    template_fields = (*GpuAutoDockPodOperator.template_fields, "batch_label")
-
-    def __init__(self, batch_label: str, **kwargs):
-        super().__init__(**kwargs)
-        self.batch_label = batch_label
-
-    def execute(self, context):
-        self.arguments = [
-            f'echo "perform_docking({ context["params"]["pdbid"] }, { self.batch_label })"; sleep 6'
-        ]
-        super().execute(context)
-
-params = {
-    'pdbid': '7cpa',
-    'ligand_db': 'sweetlead',
-    'ligands_chunk_size': 1000,
-    'n_batches': 10,
-}
-
-@dag(start_date=datetime(2021, 1, 1), 
-    schedule=None, 
-    params=params)
-def test_dag(): 
+    pod_spec_gpu      = k8s.V1PodSpec(containers=[container], volumes=[volume], runtime_class_name='nvidia')
+    full_pod_spec_gpu = k8s.V1Pod(spec=pod_spec_gpu)
 
     # 1a - Prepare the protein
-    prepare_receptor = GenericAutoDockPodOperator(
+    prepare_receptor = KubernetesPodOperator(
         task_id='prepare_receptor',
+        full_pod_spec=full_pod_spec,
 
+        cmds=['/bin/sh', '-c'],
         arguments=['echo "fetch_prepare_protein({{ params.pdbid }})"; sleep 10'],
     )
 
     # split_sdf: <n> <db_label> ->  N_batches
-    split_sdf = GenericAutoDockPodOperator(
+    split_sdf = KubernetesPodOperator(
         task_id='split_sdf',
+        full_pod_spec=full_pod_spec,
         do_xcom_push=True,
 
+        cmds=['/bin/sh', '-c'],
         arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 5; echo {{ params.n_batches }} > /airflow/xcom/return.json'],
     )
 
-    postprocessing = GenericAutoDockPodOperator(
+    postprocessing = KubernetesPodOperator(
         task_id='postprocessing',
+        full_pod_spec=full_pod_spec,
 
+        cmds=['/bin/sh', '-c'],
         arguments=['echo "postprocessing({{ params.pdbid }}, {{ params.ligand_db }})"; sleep 3'],
     )
 
@@ -132,37 +85,37 @@ def test_dag():
 
     @task_group
     def docking(batch_label: str):
-        
-        # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
-        prepare_ligands = PrepareLigandOperator(
-            task_id='prepare_ligands',
-            get_logs=True,
 
-            batch_label=batch_label, 
-        )
+        @task
+        def prepare_ligands(batch_label: str, **context):
+            # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
+            op = KubernetesPodOperator(
+                task_id=context['task'].task_id,
+                full_pod_spec=full_pod_spec,
+                get_logs=True,
 
-        """# perform_docking: <filelist> -> ()
-        perform_docking = PerformDockingOperator(
-            task_id='perform_docking',
-            get_logs=True, # otherwise generates too much lo
-
-            batch_label=batch_label
-        )"""
+                cmds=['/bin/sh', '-c'],
+                arguments=[f'echo "prepare_ligands{ (context["params"]["pdbid"], batch_label) }"; sleep 8'],
+            )
+            op.execute(context)
 
         @task
         def perform_docking(batch_label, **context):
             # perform_docking: <filelist> -> ()
-            op = GpuAutoDockPodOperator(
+            op = KubernetesPodOperator(
                 task_id=context['task'].task_id,
-                get_logs=True,
+                full_pod_spec=full_pod_spec_gpu,
+                container_resources=k8s.V1ResourceRequirements(
+                    limits={"nvidia.com/gpu": "1"}
+                ),
+                pool='gpu_pool',
 
-                arguments = [
-                    f'echo "perform_docking({ context["params"]["pdbid"] }, { batch_label })"; sleep 6'
-                ]
+                cmds=['/bin/sh', '-c'],
+                arguments = [f'echo "perform_docking{ (context["params"]["pdbid"], batch_label) }"; sleep 6'],
             )
             op.execute(context)
 
-        [prepare_receptor, prepare_ligands] >> perform_docking(batch_label)
+        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking(batch_label)
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
