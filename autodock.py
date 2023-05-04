@@ -30,28 +30,6 @@ params = {
 }
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 
-"""
-Class to define a new operator, which allows to parametrize the batch_label,
-instead of relying on a "get_prepare_ligand_cmd" to create a parametrized
-command.
-"""
-class PrepareLigandOperator(KubernetesPodOperator):
-
-    template_fields = (*KubernetesPodOperator.template_fields, "batch_label")
-
-    def __init__(self, batch_label: str, **kwargs):
-        super().__init__(
-            cmds=["sh", "-c"],
-            **kwargs
-        )
-        self.batch_label = batch_label
-
-    def execute(self, context):
-        self.arguments = [
-            f'echo "prepare_ligands({ context["params"]["pdbid"] }, { self.batch_label })"; sleep 1'
-        ]
-        super().execute(context)
-
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
@@ -116,34 +94,35 @@ def autodock():
     @task_group
     def docking(batch_label: str):
         @task
-        def prepare_ligands(batch_label: str, **context):
-            # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
-            op = KubernetesPodOperator(
-                task_id=context['task'].task_id,
-                full_pod_spec=full_pod_spec,
-                get_logs=True,
+        def get_prepare_ligands_cmd(batch_label, params=None): 
+            return ['/autodock/scripts/1b_prepare_ligands.sh', f'{ params["pdbid"] }', f'{batch_label}']
+        
+        # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
+        prepare_ligands = KubernetesPodOperator(
+            task_id='prepare_ligands',
+            full_pod_spec=full_pod_spec,
+            cmds=get_prepare_ligands_cmd(batch_label),
+            get_logs=True,
+        )
 
-                cmds=['/autodock/scripts/1b_prepare_ligands.sh', context['params']['pdbid'], batch_label],
-            )
-            op.execute(context)
+        @task 
+        def get_perform_docking_cmd(batch_label, params=None):
+            return ['/autodock/scripts/2_docking.sh', f'{ params["pdbid"] }', f'{batch_label}']
 
-        @task
-        def perform_docking(batch_label: str, **context):
-            # perform_docking: <filelist> -> ()
-            op = KubernetesPodOperator(
-                task_id=context['task'].task_id,
-                full_pod_spec=full_pod_spec_gpu,
-                container_resources=k8s.V1ResourceRequirements(
-                    limits={"nvidia.com/gpu": "1"}
-                ),
-                pool='gpu_pool',
-                get_logs=True, # otherwise generates too much log
+        # perform_docking: <filelist> -> ()
+        perform_docking = KubernetesPodOperator(
+            task_id='perform_docking',
+            full_pod_spec=full_pod_spec_gpu,
+            container_resources=k8s.V1ResourceRequirements(
+                limits={"nvidia.com/gpu": "1"}
+            ),
+            pool='gpu_pool',
 
-                cmds=['/autodock/scripts/2_docking.sh', context['params']['pdbid'], batch_label],
-            )
-            op.execute(context)
+            cmds=get_perform_docking_cmd(batch_label),
+            get_logs=True # otherwise generates too much log
+        )
 
-        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking(batch_label)
+        [prepare_receptor, prepare_ligands] >> perform_docking
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
