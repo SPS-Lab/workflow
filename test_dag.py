@@ -139,7 +139,8 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=get_prepare_ligands_cmd(batch_label)
+            cmds=['/bin/sh', '-c', 'echo $BATCH_LABEL'],
+            env_vars={'BATCH_LABEL': batch_label}
         )
 
         @task
@@ -150,7 +151,7 @@ def test_dag():
 
             return ['/bin/sh', '-c', cmd]
 
-        perform_docking = PerformDockingOperator(
+        perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
