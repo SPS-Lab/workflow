@@ -31,11 +31,11 @@ Wrapper around KubernetesPodOperator to allow parametrization of
 command.
 """
 class PrepareLigandsOperator(KubernetesPodOperator):
-    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
+    # template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
-            arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ ti.batch_label }})"; sleep 8'],
+            arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ task.batch_label }})"; sleep 8'],
             **kwargs
         )
         self.batch_label = batch_label
