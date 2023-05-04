@@ -23,7 +23,7 @@ params = {
     'pdbid': '7cpa',
     'ligand_db': 'sweetlead',
     'ligands_chunk_size': 1000,
-    'n_batches': 10,
+    'n_batches': 9,
 }
 
 """
@@ -125,15 +125,6 @@ def test_dag():
 
     @task_group
     def docking(batch_label: str):
-
-        """@task
-        def get_prepare_ligands_cmd(batch_label, params=None): 
-            cmd = 'echo "prepare_ligands({}, {})"; sleep 8'.format(
-                params["pdbid"], batch_label
-            )
-
-            return ['/bin/sh', '-c', cmd]
-        """
 
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
