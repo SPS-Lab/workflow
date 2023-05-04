@@ -36,7 +36,7 @@ class PrepareLigandsOperator(KubernetesPodOperator):
     def __init__(self, batch_label: str, **kwargs):
         self.batch_label = batch_label
         super().__init__(
-            arguments = ['echo {{ ti.batch_label }}'],
+            arguments = ['echo {{ ti.xcom_pull(task_ids="get_batch_labels") }}'],
             **kwargs
         )
         
