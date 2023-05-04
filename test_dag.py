@@ -131,13 +131,21 @@ def test_dag():
 
             return ['/bin/sh', '-c', cmd]
 
-        prepare_ligands = KubernetesPodOperator(
+        op = KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
             get_logs=True,
+            pool='gpu_pool',
 
-            cmds=get_prepare_ligands_cmd(batch_label)
+            cmds=['/bin/sh', '-c']
         )
+
+        @task
+        def prepare_ligands(batch_label: str, **context):
+            op.arguments = [
+                f'echo "prepare_ligands({ context["params"]["pdbid"] }, {batch_label})"; sleep 8'
+            ]
+            return op.execute(context)
 
         @task 
         def get_perform_docking_cmd(batch_label, params=None):
@@ -155,10 +163,10 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=get_perform_docking_cmd(batch_label),
+            cmds=batch_label,
         )
 
-        [prepare_receptor, prepare_ligands] >> perform_docking
+        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
