@@ -57,7 +57,7 @@ def test_dag():
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/bin/sh', '-c', 'echo "fetch_prepare_protein($0)"; sleep 10'],
+        cmds=['/bin/sh', '-c', 'echo "fetch_prepare_protein($0)" && sleep 10'],
         arguments=['{{ params.pdbid }}'],
     )
 
@@ -67,7 +67,7 @@ def test_dag():
         full_pod_spec=full_pod_spec,
         do_xcom_push=True,
 
-        cmds=['/bin/sh', '-c', 'echo "split_sdf($0, $1) && sleep 5 && echo $2 > /airflow/xcom/return.json'],
+        cmds=['/bin/sh', '-c', 'echo "split_sdf($0, $1)" && sleep 5 && echo $2 > /airflow/xcom/return.json'],
         arguments=['{{ params.ligands_chunk_size }}', '{{ params.ligand_db }}', '{{ params.n_batches }}'],
     )
 
@@ -102,7 +102,6 @@ def test_dag():
                 limits={"nvidia.com/gpu": "1"}
             ),
             pool='gpu_pool',
-
 
             cmds=['/bin/sh', '-c', f'echo "perform_docking($0, $1)" && sleep {random.randint(15, 30)}'],
             arguments=['{{ params.pdbid }}', batch_label]
