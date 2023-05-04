@@ -139,7 +139,7 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/bin/sh', '-c', 'echo $BATCH_LABEL'],
+            cmds=get_prepare_ligands_cmd(batch_label),
             env_vars={'BATCH_LABEL': batch_label}
         )
 
