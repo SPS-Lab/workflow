@@ -108,7 +108,11 @@ def test_dag():
             pool='gpu_pool',
 
             cmds=['/bin/sh', '-c'],
-            arguments = [f'echo "perform_docking{ (params["pdbid"], batch_label) }"; sleep 6'],
+            arguments = [
+                'echo "perform_docking({}, {})"; sleep 6'.format(
+                    params['pdbid'], f'{ batch_label }'
+                )
+            ],
         )
 
         [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking
