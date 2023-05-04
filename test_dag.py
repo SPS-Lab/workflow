@@ -99,23 +99,19 @@ def test_dag():
             )
             op.execute(context)
 
-        @task
-        def perform_docking(batch_label, **context):
-            # perform_docking: <filelist> -> ()
-            op = KubernetesPodOperator(
-                task_id=context['task'].task_id,
-                full_pod_spec=full_pod_spec_gpu,
-                container_resources=k8s.V1ResourceRequirements(
-                    limits={"nvidia.com/gpu": "1"}
-                ),
-                pool='gpu_pool',
+        perform_docking = KubernetesPodOperator(
+            task_id='perform_docking',
+            full_pod_spec=full_pod_spec_gpu,
+            container_resources=k8s.V1ResourceRequirements(
+                limits={"nvidia.com/gpu": "1"}
+            ),
+            pool='gpu_pool',
 
-                cmds=['/bin/sh', '-c'],
-                arguments = [f'echo "perform_docking{ (context["params"]["pdbid"], batch_label) }"; sleep 6'],
-            )
-            op.execute(context)
+            cmds=['/bin/sh', '-c'],
+            arguments = [f'echo "perform_docking{ (params["pdbid"], batch_label) }"; sleep 6'],
+        )
 
-        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking(batch_label)
+        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
