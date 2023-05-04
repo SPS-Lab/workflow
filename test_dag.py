@@ -140,7 +140,7 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['printf', 'prepare_ligands(%s, %s)'],
+            cmds=['echo', 'prepare_ligands(%s, %s)'],
             arguments=['{{ params.pdbid }}', batch_label, '&&', 'echo', 'coucou']
         )
 
