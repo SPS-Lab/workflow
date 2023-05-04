@@ -142,7 +142,7 @@ def test_dag():
 
             cmds=['/bin/sh', '-c', 'echo prepare_ligands'],  # get_prepare_ligands_cmd(batch_label),
             #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
-            arguments=batch_label
+            arguments=[batch_label]
         )
 
         """@task
@@ -171,6 +171,9 @@ def test_dag():
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
 
     # for each batch_label, we create a prepare_ligand + perform_docking task
+
+    print(type(batch_labels))
+
     d = docking.expand(batch_label=batch_labels)
     
     # add post-processing
