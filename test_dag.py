@@ -53,7 +53,7 @@ class PerformDockingOperator(KubernetesPodOperator):
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(
-            arguments=['echo "perform_docking({{ params.pdbid }}, {{ var.value.batch_label }})"; sleep 6']
+            arguments=['echo "perform_docking({{ params.pdbid }}, {{ var.value.batch_label }})"; sleep 6'],
             **kwargs
         )
         self.batch_label = batch_label
