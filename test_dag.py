@@ -137,9 +137,7 @@ def test_dag():
             get_logs=True,
             pool='gpu_pool',
 
-            cmds=['/bin/sh', '-c', 
-                'echo "prepare_ligands({{ params.pdbid }}, ____)"; sleep 8'
-            ]
+            cmds=get_prepare_ligands_cmd(batch_label)
         )
 
         @task
