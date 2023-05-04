@@ -140,9 +140,9 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/bin/sh', '-c', 'echo prepare_ligands'],  # get_prepare_ligands_cmd(batch_label),
+            cmds=['/usr/bin/xargs', 'echo'],  # get_prepare_ligands_cmd(batch_label),
             #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
-            arguments=[str(batch_label) + ' coucou']
+            arguments=['prepare_ligands', batch_label]
         )
 
         """@task
