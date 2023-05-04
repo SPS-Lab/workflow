@@ -132,7 +132,7 @@ def test_dag():
             get_logs=True,
 
             cmds=['/usr/bin/printf', 'prepare_ligands(%s, %s)'],
-            arguments=['{{ params.pdbid }}', batch_label]
+            arguments=['{{ params.pdbid }}', '{{ batch_label }}']
         )
 
         perform_docking = KubernetesPodOperator(
