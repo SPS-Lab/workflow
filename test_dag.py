@@ -26,46 +26,6 @@ params = {
     'n_batches': 9,
 }
 
-"""
-Wrapper around KubernetesPodOperator to allow parametrization of 
-command.
-"""
-class PrepareLigandsOperator(KubernetesPodOperator):
-    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
-
-    def __init__(self, batch_label: str, **kwargs):
-        self.batch_label = batch_label
-
-        super().__init__(
-            **kwargs
-        )
-        
-
-    def execute(self, context):
-        return super().execute(context)
-
-"""
-Wrapper around KubernetesPodOperator to allow parametrization of 
-command.
-"""
-class PerformDockingOperator(KubernetesPodOperator):
-    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
-
-    def __init__(self, batch_label: str, **kwargs):
-        super().__init__(
-            arguments=['echo "perform_docking({{ params.pdbid }}, {{ var.value.batch_label }})"; sleep 6'],
-            **kwargs
-        )
-        self.batch_label = batch_label
-
-    """def pre_execute(self, context):
-        self.arguments = [
-            'echo "perform_docking({}, {})"; sleep 6'.format(
-                context['params']['pdbid'], self.batch_label
-            )
-        ]
-        # return super().pre_execute(context)"""
-
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None, 
     params=params)
@@ -97,8 +57,8 @@ def test_dag():
         task_id='prepare_receptor',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/bin/sh', '-c'],
-        arguments=['echo "fetch_prepare_protein({{ params.pdbid }})"; sleep 10'],
+        cmds=['/bin/sh', '-c', 'echo "fetch_prepare_protein($0)"; sleep 10'],
+        arguments=['{{ params.pdbid }}'],
     )
 
     # split_sdf: <n> <db_label> ->  N_batches
@@ -107,16 +67,16 @@ def test_dag():
         full_pod_spec=full_pod_spec,
         do_xcom_push=True,
 
-        cmds=['/bin/sh', '-c'],
-        arguments=['echo "split_sdf({{ params.ligands_chunk_size }} {{ params.ligand_db }})"; sleep 5; echo {{ params.n_batches }} > /airflow/xcom/return.json'],
+        cmds=['/bin/sh', '-c', 'echo "split_sdf($0, $1) && sleep 5 && echo $2 > /airflow/xcom/return.json'],
+        arguments=['{{ params.ligands_chunk_size }}', '{{ params.ligand_db }}', '{{ params.n_batches }}'],
     )
 
     postprocessing = KubernetesPodOperator(
         task_id='postprocessing',
         full_pod_spec=full_pod_spec,
 
-        cmds=['/bin/sh', '-c'],
-        arguments=['echo "postprocessing({{ params.pdbid }}, {{ params.ligand_db }})"; sleep 3'],
+        cmds=['/bin/sh', '-c', 'echo "postprocessing($0, $1)" && sleep 3'],
+        arguments=['{{ params.pdbid }}', '{{ params.ligand_db }}'],
     )
 
     @task
@@ -131,8 +91,8 @@ def test_dag():
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/usr/bin/printf', 'prepare_ligands(%s, %s)'],
-            arguments=['{{ params.pdbid }}', '{{ batch_label }}']
+            cmds=['/bin/sh', '-c', 'echo "prepare_ligands($0, $1)" && sleep 8'],
+            arguments=['{{ params.pdbid }}', batch_label]
         )
 
         perform_docking = KubernetesPodOperator(
@@ -143,7 +103,8 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/usr/bin/printf', 'perform_docking(%s, %s)'],
+
+            cmds=['/bin/sh', '-c', f'echo "perform_docking($0, $1)" && sleep {random.randint(15, 30)}'],
             arguments=['{{ params.pdbid }}', batch_label]
         )
 
