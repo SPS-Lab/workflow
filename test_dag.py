@@ -159,7 +159,7 @@ def test_dag():
             ),
             pool='gpu_pool',
 
-            cmds=['/bin/sh', '-c']
+            cmds=['/bin/sh', '-c'],
             arguments=['echo docking'],
         )
 
