@@ -168,7 +168,7 @@ def test_dag():
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
 
     # for each batch_label, we create a prepare_ligand + perform_docking task
-    d = docking.expand(batch_label=batch_labels)
+    d = docking.expand(batch_label=XComArg(batch_labels))
     
     # add post-processing
     d >> postprocessing
