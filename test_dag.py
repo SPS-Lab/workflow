@@ -97,11 +97,8 @@ def test_dag():
 
         perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
-            full_pod_spec=full_pod_spec_gpu,
-            container_resources=k8s.V1ResourceRequirements(
-                limits={"nvidia.com/gpu": "1"}
-            ),
-            pool='gpu_pool',
+            full_pod_spec=full_pod_spec,
+            pool='small_pool',
 
             cmds=['/bin/sh', '-c', f'echo "perform_docking($0, $1)" && sleep {random.randint(15, 30)}'],
             arguments=['{{ params.pdbid }}', batch_label]
