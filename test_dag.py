@@ -55,13 +55,13 @@ class PerformDockingOperator(KubernetesPodOperator):
         super().__init__(**kwargs)
         self.batch_label = batch_label
 
-    def execute(self, context):
+    def pre_execute(self, context):
         self.arguments = [
             'echo "perform_docking({}, {})"; sleep 6'.format(
                 context['params']['pdbid'], self.batch_label
             )
         ]
-        return super().execute(context)
+        # return super().pre_execute(context)
 
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None, 
