@@ -90,24 +90,18 @@ def autodock():
     def get_batch_labels(db_label: str, n: int):
         return [f'{db_label}_batch{i}' for i in range(n+1)]
 
-
     @task_group
     def docking(batch_label: str):
-        @task
-        def get_prepare_ligands_cmd(batch_label, params=None): 
-            return ['/autodock/scripts/1b_prepare_ligands.sh', f'{ params["pdbid"] }', f'{batch_label}']
         
         # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
-            cmds=get_prepare_ligands_cmd(batch_label),
             get_logs=True,
-        )
 
-        @task 
-        def get_perform_docking_cmd(batch_label, params=None):
-            return ['/autodock/scripts/2_docking.sh', f'{ params["pdbid"] }', f'{batch_label}']
+            cmds=['/autodock/scripts/1b_prepare_ligands.sh'],
+            arguments=['{{ params.pdbid }}', batch_label]
+        )
 
         # perform_docking: <filelist> -> ()
         perform_docking = KubernetesPodOperator(
@@ -118,8 +112,9 @@ def autodock():
             ),
             pool='gpu_pool',
 
-            cmds=get_perform_docking_cmd(batch_label),
-            get_logs=True # otherwise generates too much log
+            cmds=['/autodock/scripts/2_docking.sh'],
+            arguments=['{{ params.pdbid }}', batch_label],
+            get_logs=True
         )
 
         [prepare_receptor, prepare_ligands] >> perform_docking
