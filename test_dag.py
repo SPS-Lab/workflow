@@ -26,6 +26,44 @@ params = {
     'n_batches': 10,
 }
 
+"""
+Wrapper around KubernetesPodOperator to allow parametrization of 
+command.
+"""
+class PrepareLigandsOperator(KubernetesPodOperator):
+    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
+
+    def __init__(self, batch_label: str, **kwargs):
+        super().__init__(**kwargs)
+        self.batch_label = batch_label
+
+    def execute(self, context):
+        self.arguments = [
+            'echo "prepare_ligands({}, {})"; sleep 8'.format(
+                context["params"]["pdbid"], batch_label
+            )
+        ]
+        return super().execute(context)
+
+"""
+Wrapper around KubernetesPodOperator to allow parametrization of 
+command.
+"""
+class PerformDockingOperator(KubernetesPodOperator):
+    template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
+
+    def __init__(self, batch_label: str, **kwargs):
+        super().__init__(**kwargs)
+        self.batch_label = batch_label
+
+    def execute(self, context):
+        self.arguments = [
+            'echo "perform_docking({}, {})"; sleep 6'.format(
+                context['params']['pdbid'], self.batch_label
+            )
+        ]
+        return super().execute(context)
+
 @dag(start_date=datetime(2021, 1, 1), 
     schedule=None, 
     params=params)
@@ -86,20 +124,16 @@ def test_dag():
     @task_group
     def docking(batch_label: str):
 
-        @task
-        def prepare_ligands(batch_label: str, **context):
-            # prepare_ligands: <db_label> <batch_num> -> filelist_<db_label>_batch<batch_num>
-            op = KubernetesPodOperator(
-                task_id=context['task'].task_id,
-                full_pod_spec=full_pod_spec,
-                get_logs=True,
+        prepare_ligands = PrepareLigandsOperator(
+            task_id='prepare_ligands',
+            full_pod_spec=full_pod_spec,
+            get_logs=True,
 
-                cmds=['/bin/sh', '-c'],
-                arguments=[f'echo "prepare_ligands{ (context["params"]["pdbid"], batch_label) }"; sleep 8'],
-            )
-            op.execute(context)
+            cmds=['/bin/sh', '-c'],
+            batch_label=batch_label
+        )
 
-        perform_docking = KubernetesPodOperator(
+        perform_docking = PerformDockingOperator(
             task_id='perform_docking',
             full_pod_spec=full_pod_spec_gpu,
             container_resources=k8s.V1ResourceRequirements(
@@ -108,14 +142,10 @@ def test_dag():
             pool='gpu_pool',
 
             cmds=['/bin/sh', '-c'],
-            arguments = [
-                'echo "perform_docking({}, {})"; sleep 6'.format(
-                    params['pdbid'], f'{ batch_label }'
-                )
-            ],
+            batch_label=batch_label
         )
 
-        [prepare_receptor, prepare_ligands(batch_label)] >> perform_docking
+        [prepare_receptor, prepare_ligands] >> perform_docking
 
     # converts (db_label, n) to a list of batch_labels
     batch_labels = get_batch_labels('sweetlead', split_sdf.output)
