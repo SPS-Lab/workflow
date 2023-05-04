@@ -134,14 +134,15 @@ def test_dag():
 
             return ['/bin/sh', '-c', cmd]
         """
-        
+
         prepare_ligands = KubernetesPodOperator(
             task_id='prepare_ligands',
             full_pod_spec=full_pod_spec,
             get_logs=True,
 
-            cmds=['/bin/sh', '-c', 'echo prepare_ligands']  # get_prepare_ligands_cmd(batch_label),
+            cmds=['/bin/sh', '-c', 'echo prepare_ligands'],  # get_prepare_ligands_cmd(batch_label),
             #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
+            arguments=batch_label
         )
 
         """@task
