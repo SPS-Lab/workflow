@@ -34,18 +34,15 @@ class PrepareLigandsOperator(KubernetesPodOperator):
     template_fields = (*KubernetesPodOperator.template_fields, 'batch_label')
 
     def __init__(self, batch_label: str, **kwargs):
-        super().__init__(
-            arguments=['echo "prepare_ligands({{ params.pdbid }}, {{ ti.operator.batch_label }})"; sleep 8'],
-            **kwargs
-        )
+        super().__init__(**kwargs)
         self.batch_label = batch_label
 
     def execute(self, context):
-        """self.arguments = [
+        self.arguments = [
             'echo "prepare_ligands({}, {})"; sleep 8'.format(
                 context["params"]["pdbid"], self.batch_label
             )
-        ]"""
+        ]
         return super().execute(context)
 
 """
