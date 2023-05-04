@@ -143,13 +143,13 @@ def test_dag():
             #cmds=['/bin/sh', '-c', 'echo prepare_ligands']
         )
 
-        @task
+        """@task
         def get_perform_docking_cmd(batch_label, params=None):
             cmd = 'echo "perform_docking({}, {})"; sleep {}'.format(
                 params["pdbid"], batch_label, random.randint(15, 30)
             )
 
-            return ['/bin/sh', '-c', cmd]
+            return ['/bin/sh', '-c', cmd]"""
 
         perform_docking = KubernetesPodOperator(
             task_id='perform_docking',
