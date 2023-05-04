@@ -35,7 +35,8 @@ class PrepareLigandsOperator(KubernetesPodOperator):
 
     def __init__(self, batch_label: str, **kwargs):
         super().__init__(**kwargs)
-        #self.arguments = ['echo barabra;']
+        self.arguments = ['echo {{ ti.batch_label }}']
+        print(batch_label)
         self.batch_label = batch_label
 
     def execute(self, context):
@@ -44,7 +45,7 @@ class PrepareLigandsOperator(KubernetesPodOperator):
                 context["params"]["pdbid"], self.batch_label
             )
         ]"""
-        self.arguments = ['echo barabra;']
+        #self.arguments = ['echo barabra;']
         return super().execute(context)
 
 """
