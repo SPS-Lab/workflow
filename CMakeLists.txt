@@ -39,7 +39,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/sites/${SITE}.cmake")
 option(BUILD_SHARED_LIBS "Use shared libraries if ON, static if OFF" ON)
 option(USE_CATALYST "Use Catalyst adaptor" OFF)
 option(USE_BATSRUS "Use BATSRUS flag" OFF)
-option(USE_HDF5 "Use HDF5 library" OFF)
+option(USE_HDF5 "Use HDF5 library" ON)
 
 include(GNUInstallDirs)
 
@@ -118,6 +118,7 @@ target_include_directories(
 target_link_libraries(
   iPIC3Dlib
   PUBLIC MPI::MPI_CXX
+  PRIVATE hdf5::hdf5
   PRIVATE hdf5::hdf5_hl
   )
 
