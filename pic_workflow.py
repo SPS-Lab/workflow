@@ -80,5 +80,5 @@ def pic():
     
     #ninputs_array = range(int(params['ninputs'] - 1)
     #d = exec_pic.expand(batch_label=ninputs_array)
-    pic_prep  >> [d, tracker] 
+    pic_prep  >> [d, pic_tracker] 
 pic()
