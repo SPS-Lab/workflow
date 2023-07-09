@@ -3,7 +3,7 @@ from airflow.models.param import Param
 from airflow.decorators import dag, task, task_group
 from airflow.configuration import conf
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-
+from airflow.utils.task_group import TaskGroup
 from datetime import datetime
 
 from kubernetes.client import models as k8s
@@ -79,8 +79,6 @@ def pic():
                 cmds=['./exec_pic.sh'],
         )
             picexec
-
-        
 
     
     #d = exec_pic.expand(batch_label=ninputs_array)
