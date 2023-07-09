@@ -74,7 +74,7 @@ def pic():
     with TaskGroup("taskgroup_1", tooltip="task group #1") as exec_pic:
         for i in ninputs_array:
             picexec = KubernetesPodOperator(
-                task_id='pic-worker',
+                task_id='pic-worker-{i}',
                 full_pod_spec=create_pod_spec(i, 'worker'),
                 cmds=['./exec_pic.sh'],
         )
