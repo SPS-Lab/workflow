@@ -53,10 +53,12 @@ def pic():
         full_pod_spec=create_pod_spec(0, 'end'),
         cmds = ['sleep 10'],
     )
+
     tracker = KubernetesPodOperator(
             task_id='tracker',
             full_pod_spec=create_pod_spec(0, 'tracker'),
             cmds=['python3', '/home/tracker.py'],
+            getlogs=True,
          )
 
 
@@ -69,12 +71,13 @@ def pic():
             arguments=['/home/preparation.py'],
         )
 
+        pic_prep
+
     @task
     def exec_pic(batch_label: str):
         picexec = KubernetesPodOperator(
             task_id='pic-worker',
             full_pod_spec=create_pod_spec(batch_label, 'worker'),
-            get_logs=True,
             cmds=['./exec_pic.sh'],
         )
 
@@ -84,7 +87,7 @@ def pic():
     d = exec_pic.expand(batch_label=ninputs_array)
     
     pic_prep  >> d 
-    tracker >> end_exec
+    [d, tracker] >> end_exec
 
 
 pic()
