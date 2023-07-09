@@ -70,7 +70,8 @@ def pic():
         )
 
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
-    with Task("pic") as exec_pic:
+    
+    with TaskGroup("taskgroup_1", tooltip="task group #1") as exec_pic:
         for i in ninputs_array:
             picexec = KubernetesPodOperator(
                 task_id='pic-worker',
