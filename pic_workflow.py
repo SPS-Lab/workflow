@@ -62,32 +62,29 @@ def pic():
          )
 
 
-    @task
-    def pic_prep():
-        prepare_inputs = KubernetesPodOperator(
+    prepare_inputs = KubernetesPodOperator(
             task_id='prepare_inputs',
             full_pod_spec=create_pod_spec(0, tracker),
             cmds=['python3'],
             arguments=['/home/preparation.py'],
         )
 
-        pic_prep
-
-    @task
-    def exec_pic(batch_label: str):
-        picexec = KubernetesPodOperator(
-            task_id='pic-worker',
-            full_pod_spec=create_pod_spec(batch_label, 'worker'),
-            cmds=['./exec_pic.sh'],
-        )
-
-        picexec
-
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
-    d = exec_pic.expand(batch_label=ninputs_array)
+    with Task("pic") as exec_pic:
+        for i in ninputs_array:
+            picexec = KubernetesPodOperator(
+                task_id='pic-worker',
+                full_pod_spec=create_pod_spec(batch_label, 'worker'),
+                cmds=['./exec_pic.sh'],
+        )
+            picexec
+
+        
+
     
-    pic_prep  >> d 
-    [d, tracker] >> end_exec
+    #d = exec_pic.expand(batch_label=ninputs_array)
+    
+    prepare_inputs >> [exec_pic, tracker] >> end_exec
 
 
 pic()
