@@ -75,8 +75,10 @@ def pic():
             get_logs=True,
             cmds=['./exec_pic.sh'],
         )
-
-    ninputs_array = range(int(params['ninputs'] - 1)
-    d = exec_pic.expand(batch_label=ninputs_array)
+    ninputs_array = range(int(params['ninputs']) - 1)
+    d = [exec_pic(batch_label=str(label)) for label in ninputs_array]
+    
+    #ninputs_array = range(int(params['ninputs'] - 1)
+    #d = exec_pic.expand(batch_label=ninputs_array)
     pic_prep  >> [d, tracker] 
 pic()
