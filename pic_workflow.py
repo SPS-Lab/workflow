@@ -20,7 +20,7 @@ def create_pod_spec(pic_id, wtype):
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
-    pod_name = "pic" + "-" + wtype + "-" + str(pic_id)
+    pod_name = "pic-" +  wtype + "a-" + str(pic_id)
 
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
@@ -74,7 +74,7 @@ def pic():
         for i in ninputs_array:
             picexec = KubernetesPodOperator(
                 task_id='pic-worker',
-                full_pod_spec=create_pod_spec(batch_label, 'worker'),
+                full_pod_spec=create_pod_spec(i, 'worker'),
                 cmds=['./exec_pic.sh'],
         )
             picexec
