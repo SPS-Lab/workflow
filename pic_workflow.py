@@ -58,7 +58,7 @@ def pic():
             task_id='tracker',
             full_pod_spec=create_pod_spec(0, 'tracker'),
             cmds=['python3', '/home/tracker.py'],
-            getlogs=True,
+            get_logs=True,
          )
 
 
