@@ -69,7 +69,7 @@ def pic():
             arguments=['/home/preparation.py'],
         )
 
-    @task_group
+    @task
     def exec_pic(batch_label: str):
         picexec = KubernetesPodOperator(
             task_id='pic-worker',
