@@ -48,13 +48,14 @@ params = {
 def pic(): 
     import os.path
     
+
+
     @task
-    prepare_inputs = KubernetesPodOperator(
-        task_id='prepare_inputs',
+    prepareinputs = KubernetesPodOperator(
+        task_id='prepareinputs',
         full_pod_spec=create_pod_spec(0, 'prepare'),
         cmds=['python3']
         arguments=['/home/preparation.py > /airflow/xcom/return.json'],
-        do_xcom_push=True
     )
 
 # 4 tracker
@@ -78,5 +79,5 @@ def pic():
 
     ninputs_array = range(params.ninput - 1)
     d = exec_pic.expand(batch_label=ninputs_array)
-    prepare_inputs >> [d, tracker] 
+    prepareinputs >> [d, tracker] 
 pic()
