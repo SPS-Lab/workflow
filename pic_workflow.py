@@ -24,7 +24,7 @@ def create_pod_spec(pic_id, wtype):
 
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
-        name=pod_name
+        name=pod_name,
         image='raijenki/mpik8s:pic',
         working_dir=MOUNT_PATH,
 
