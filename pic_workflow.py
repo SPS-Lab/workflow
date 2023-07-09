@@ -48,8 +48,15 @@ params = {
 def pic(): 
     import os.path
     
+    tracker = KubernetesPodOperator(
+            task_id='tracker',
+            full_pod_spec=create_pod_spec(0, 'tracker'),
+            cmds=['python3', '/home/tracker.py'],
+         )
+
+
     @task
-    def pic_prep(pic_id, wtype):
+    def pic_prep():
         prepare_inputs = KubernetesPodOperator(
             task_id='prepare_inputs',
             full_pod_spec=create_pod_spec(0, tracker),
@@ -57,17 +64,6 @@ def pic():
             arguments=['/home/preparation.py'],
         )
 
-# 4 tracker
-    @task
-    def pic_tracker(pic_id, wtype):
-        tracker = KubernetesPodOperator(
-        task_id='tracker',
-        full_pod_spec=create_pod_spec(0, 'tracker'),
-        cmds=['python3', '/home/tracker.py'],
-    )
-
-# 3 execute pic
-    @task
     def exec_pic(batch_label: str):
         picexec = KubernetesPodOperator(
             task_id='pic-worker',
@@ -75,8 +71,10 @@ def pic():
             get_logs=True,
             cmds=['./exec_pic.sh'],
         )
-   
+
+        picexec
+
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
     d = exec_pic.expand(batch_label=ninputs_array)
-    pic_prep  >> [d, pic_tracker] 
+    pic_prep  >> d >> tracker
 pic()
