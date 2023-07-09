@@ -49,9 +49,8 @@ def pic():
     import os.path
     
     end_exec = KubernetesPodOperator(
-        task_id='split_sdf',
-        full_pod_spec=full_pod_spec,
-
+        task_id='end_exec',
+        full_pod_spec=create_pod_spec(0, 'end'),
         cmds = ['sleep 10'],
     )
     tracker = KubernetesPodOperator(
