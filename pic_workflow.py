@@ -20,7 +20,7 @@ def create_pod_spec(pic_id, wtype):
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
-    pod_name = "pic-" +  wtype + "a-" + str(pic_id)
+    pod_name = "pic-" +  str(wtype) + "-" + str(pic_id)
 
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
@@ -64,7 +64,7 @@ def pic():
 
     prepare_inputs = KubernetesPodOperator(
             task_id='prepare_inputs',
-            full_pod_spec=create_pod_spec(0, tracker),
+            full_pod_spec=create_pod_spec(0, 'tracker'),
             cmds=['python3'],
             arguments=['/home/preparation.py'],
         )
