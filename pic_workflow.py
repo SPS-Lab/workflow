@@ -48,6 +48,12 @@ params = {
 def pic(): 
     import os.path
     
+    end_exec = KubernetesPodOperator(
+        task_id='split_sdf',
+        full_pod_spec=full_pod_spec,
+
+        cmds = ['sleep 10'],
+    )
     tracker = KubernetesPodOperator(
             task_id='tracker',
             full_pod_spec=create_pod_spec(0, 'tracker'),
@@ -64,6 +70,7 @@ def pic():
             arguments=['/home/preparation.py'],
         )
 
+    @task_group
     def exec_pic(batch_label: str):
         picexec = KubernetesPodOperator(
             task_id='pic-worker',
@@ -76,5 +83,5 @@ def pic():
 
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
     d = exec_pic.expand(batch_label=ninputs_array)
-    pic_prep  >> d >> tracker
+    pic_prep  >> [d, tracker] >> end_exec
 pic()
