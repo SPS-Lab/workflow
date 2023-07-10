@@ -43,7 +43,7 @@ params = {
 }
 
 @task
-def list_inputs():
+def list_inputs(params=None):
     return [*range(0, int(params['ninputs']), 1)]
 
 @task 
