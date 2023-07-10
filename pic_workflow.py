@@ -85,10 +85,14 @@ def pic():
     )
     
     picexec.expand(name=list_inputs())
-    
+   
+    prepare_inputs >> picexec
+    prepare_inputs >> tracker
+
+
     #d = exec_pic.expand(batch_label=ninputs_array)
     
-    prepare_inputs >> [picexec, tracker] >> end_exec
+    # prepare_inputs >> [picexec, tracker] >> end_exec
 
 
 pic()
