@@ -46,10 +46,6 @@ params = {
 def list_inputs(params=None):
     return [f'pic-worker-{i}' for i in range(0, int(params['ninputs']))]
 
-@task 
-def picexec(arg):
-    _picexec
-
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
@@ -81,7 +77,8 @@ def pic():
     picexec = KubernetesPodOperator.partial(
         task_id=f'pic-worker',
         full_pod_spec=create_pod_spec(0, 'worker'),
-        cmds=['./home/exec_pic.sh'],
+        cmds = ['/bin/sh', '-c']
+        arguments=['/home/exec_pic.sh'],
     ).expand(name=list_inputs())
    
     # prepare_inputs >> picexec
