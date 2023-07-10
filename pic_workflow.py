@@ -25,7 +25,7 @@ def create_pod_spec(pic_id, wtype):
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name=pod_name,
-        image='raijenki/mpik8s:picv3',
+        image='raijenki/mpik8s:picv4',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
@@ -39,7 +39,7 @@ def create_pod_spec(pic_id, wtype):
     return full_pod_spec
 
 params = {
-        'ninputs': 4,
+        'ninputs': 5,
 }
 
 @dag(start_date=datetime(2021, 1, 1),
