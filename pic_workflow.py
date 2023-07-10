@@ -25,7 +25,7 @@ def create_pod_spec(pic_id, wtype):
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name=pod_name,
-        image='raijenki/mpik8s:picv12',
+        image='raijenki/mpik8s:picv13',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
@@ -39,7 +39,7 @@ def create_pod_spec(pic_id, wtype):
     return full_pod_spec
 
 params = {
-        'ninputs': 5,
+        'ninputs': 4,
 }
 
 @task
@@ -62,7 +62,7 @@ def pic():
     tracker = KubernetesPodOperator(
             task_id='tracker',
             full_pod_spec=create_pod_spec(0, 'tracker'),
-            cmds=['python3', '/home/tracker.py'],
+            cmds=['python3', '/home/tracker.py > /data/tracker.txt'],
             get_logs=True,
             image_pull_policy='Always',
          )
