@@ -25,16 +25,17 @@ def create_pod_spec(pic_id, wtype):
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name=pod_name,
-        image='raijenki/mpik8s:picv2',
+        image='raijenki/mpik8s:picv3',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
         image_pull_policy='Always',
     )
 
+    pod_metadata = k8s.V1ObjectMeta(name=pod_name)
     # CPU/generic pod specification
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
-    full_pod_spec = k8s.V1Pod(spec=pod_spec)
+    full_pod_spec = k8s.V1Pod(metadata=pod_metadata, spec=pod_spec)
     return full_pod_spec
 
 params = {
@@ -71,7 +72,7 @@ def pic():
 
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
     
-    with TaskGroup("pic-workers", tooltip="pic-working") as exec_pic:
+    with TaskGroup("pic-workers", tooltip="pic executors") as exec_pic:
         for i in ninputs_array:
             picexec = KubernetesPodOperator(
                 task_id=f'pic-worker-{i}',
