@@ -42,6 +42,19 @@ params = {
         'ninputs': 5,
 }
 
+@task
+def list_inputs():
+    return [*range(0, int(params['ninputs']), 1)]
+
+@task 
+def picexec(arg):
+    _picexec = KubernetesPodOperator(
+        task_id=f'pic-worker',
+        full_pod_spec=create_pod_spec(i, 'worker'),
+        cmds=['./home/exec_pic.sh'],
+        )
+    _picexec
+
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
      catchup=False,
@@ -69,22 +82,12 @@ def pic():
             cmds=['python3'],
             arguments=['/home/preparation.py'],
         )
-
-    ninputs_array = [*range(0, int(params['ninputs']), 1)]
     
-    with TaskGroup("pic-workers", tooltip="pic executors") as exec_pic:
-        for i in ninputs_array:
-            picexec = KubernetesPodOperator(
-                task_id=f'pic-worker-{i}',
-                full_pod_spec=create_pod_spec(i, 'worker'),
-                cmds=['./exec_pic.sh'],
-        )
-            picexec
-
+    picexec.expand(arg=list_inputs())
     
     #d = exec_pic.expand(batch_label=ninputs_array)
     
-    prepare_inputs >> [exec_pic, tracker] >> end_exec
+    prepare_inputs >> [picexec, tracker] >> end_exec
 
 
 pic()
