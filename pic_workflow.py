@@ -77,8 +77,7 @@ def pic():
     picexec = KubernetesPodOperator.partial(
         task_id=f'pic-worker',
         full_pod_spec=create_pod_spec(0, 'worker'),
-        cmds = ['/bin/sh', '-c']
-        arguments=['/home/exec_pic.sh'],
+        cmds = ['/bin/sh', '-c', '/home/exec_pic.sh'],
     ).expand(name=list_inputs())
    
     # prepare_inputs >> picexec
