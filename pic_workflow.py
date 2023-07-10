@@ -25,7 +25,7 @@ def create_pod_spec(pic_id, wtype):
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name=pod_name,
-        image='raijenki/mpik8s:pic',
+        image='raijenki/mpik8s:picv2',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
@@ -64,14 +64,14 @@ def pic():
 
     prepare_inputs = KubernetesPodOperator(
             task_id='prepare_inputs',
-            full_pod_spec=create_pod_spec(0, 'tracker'),
+            full_pod_spec=create_pod_spec(0, 'prepare-inputs'),
             cmds=['python3'],
             arguments=['/home/preparation.py'],
         )
 
     ninputs_array = [*range(0, int(params['ninputs']), 1)]
     
-    with TaskGroup("taskgroup_1", tooltip="task group #1") as exec_pic:
+    with TaskGroup("pic-workers", tooltip="pic-working") as exec_pic:
         for i in ninputs_array:
             picexec = KubernetesPodOperator(
                 task_id=f'pic-worker-{i}',
