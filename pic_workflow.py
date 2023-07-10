@@ -82,9 +82,7 @@ def pic():
         task_id=f'pic-worker',
         full_pod_spec=create_pod_spec(0, 'worker'),
         cmds=['./home/exec_pic.sh'],
-    )
-    
-    picexec.expand(name=list_inputs())
+    ).expand(name=list_inputs())
    
     # prepare_inputs >> picexec
     # prepare_inputs >> tracker
@@ -92,7 +90,7 @@ def pic():
 
     #d = exec_pic.expand(batch_label=ninputs_array)
     
-    prepare_inputs >> [picexec(), tracker] >> end_exec
+    prepare_inputs >> [picexec, tracker] >> end_exec
 
 
 pic()
