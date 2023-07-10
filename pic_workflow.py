@@ -92,7 +92,7 @@ def pic():
 
     #d = exec_pic.expand(batch_label=ninputs_array)
     
-    # prepare_inputs >> [picexec, tracker] >> end_exec
+    prepare_inputs >> [picexec, tracker] >> end_exec
 
 
 pic()
