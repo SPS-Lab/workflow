@@ -64,6 +64,7 @@ def pic():
             full_pod_spec=create_pod_spec(0, 'tracker'),
             cmds=['python3', '/home/tracker.py'],
             get_logs=True,
+            image_pull_policy='Always',
          )
 
 
@@ -71,14 +72,15 @@ def pic():
             task_id='prepare_inputs',
             full_pod_spec=create_pod_spec(0, 'prepare-inputs'),
             cmds=['python3'],
+            image_pull_policy='Always',
             arguments=['/home/preparation.py'],
         )
     
     picexec = KubernetesPodOperator.partial(
         task_id=f'pic-worker',
         full_pod_spec=create_pod_spec(0, 'worker'),
-        cmds = ['/bin/sh', '-c']
-        arguments=['/home/exec_pic.sh'],
+        image_pull_policy='Always',
+        cmds = ['/bin/bash', '-c', '/home/exec_pic.sh'],
     ).expand(name=list_inputs())
    
     # prepare_inputs >> picexec
@@ -88,6 +90,4 @@ def pic():
     #d = exec_pic.expand(batch_label=ninputs_array)
     
     prepare_inputs >> [picexec, tracker] >> end_exec
-
-
 pic()
