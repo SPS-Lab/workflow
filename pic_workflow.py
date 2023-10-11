@@ -10,9 +10,9 @@ from kubernetes.client import models as k8s
 
 PVC_NAME = 'pvc-autodock'
 MOUNT_PATH = '/data'
-VOLUME_KEY  = 'volume-autodock'
+VOLUME_KEY  = 'volume-pic'
+
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
-pvol_path = "/home/daniel/k3dvol/gem/"
 
 def create_pod_spec():
         return full_pod_spec
@@ -68,7 +68,7 @@ def pic():
         task_id='pic-worker',
         full_pod_spec=full_pod_spec,
 
-        cmds = ['/pic/sputnicPIC'],
+        cmds = ['/pic/sputniPIC'],
     ).expand(arguments=list_inputs())
      
     # 2b - Track the progress of all simulations
