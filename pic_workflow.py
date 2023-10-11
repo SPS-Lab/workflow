@@ -86,7 +86,7 @@ def pic():
         task_id='end_exec',
         full_pod_spec=full_pod_spec,
 
-        trigger_rule = 'all_done'
+        trigger_rule = 'all_done',
         cmds = ['/pic/scripts/end_exec.sh'],
     )
     
