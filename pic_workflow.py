@@ -41,7 +41,7 @@ def pic():
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
         name='pic-container',
-        image='raijenki/mpik8s:picv50',
+        image='gabinsc/sputnipic:latest',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
