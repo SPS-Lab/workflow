@@ -48,7 +48,7 @@ def pic():
         image_pull_policy='Always',
     )
 
-    pod_metadata = k8s.V1ObjectMeta(name=pod_name)
+    pod_metadata = k8s.V1ObjectMeta()
 
     # CPU/generic pod specification
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
