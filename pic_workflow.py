@@ -18,7 +18,7 @@ def create_pod_spec():
         return full_pod_spec
 
 params = {
-    'inputlist': ['GEM_2D.inp', 'GEM_2D_1', 'GEM_2D_2'],
+    'inputlist': ['GEM_2D', 'GEM_2D_1', 'GEM_2D_2'],
 }
 
 @task
@@ -68,7 +68,8 @@ def pic():
         task_id='pic-worker',
         full_pod_spec=full_pod_spec,
 
-        cmds = ['/pic/sputniPIC'],
+    #    cmds = ['/pic/sputniPIC'],
+        cmds = ['/bin/sh', '-c', 'echo /pic/sputniPIC $0 && /usr/bin/sleep 10']
     ).expand(arguments=list_inputs())
      
     # 2b - Track the progress of all simulations
@@ -78,14 +79,15 @@ def pic():
         
         cmds=['/pic/scripts/tracker.py'],
         get_logs=True,
-     )
+    )
    
     # 3 - end of the workflow
     end_exec = KubernetesPodOperator(
         task_id='end_exec',
         full_pod_spec=full_pod_spec,
 
-        cmds = ['/usr/bin/sleep', '10'],
+        trigger_rule = 'all_done'
+        cmds = ['/pic/scripts/end_exec.sh'],
     )
     
     prepare_inputs >> [picexec, tracker] >> end_exec
