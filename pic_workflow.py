@@ -8,14 +8,11 @@ from datetime import datetime
 
 from kubernetes.client import models as k8s
 
-PVC_NAME = 'pvc-autodock'
+PVC_NAME = 'pvc-pic' # CHANGE ME
+
 MOUNT_PATH = '/data'
 VOLUME_KEY  = 'volume-pic'
-
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
-
-def create_pod_spec():
-        return full_pod_spec
 
 params = {
     'inputlist': ['GEM_2D', 'GEM_2D_1', 'GEM_2D_2'],
@@ -27,8 +24,10 @@ def list_inputs(params=None):
     
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
-     catchup=False,
-     params=params)
+     params=params,
+
+     # allow for passing lists in templated fields
+     render_template_as_native_obj=True)
 def pic(): 
     import os.path
 
@@ -44,15 +43,10 @@ def pic():
         image='gabinsc/sputnipic:latest',
         working_dir=MOUNT_PATH,
 
-        volume_mounts=[volume_mount],
-        image_pull_policy='Always',
+        volume_mounts=[volume_mount]
     )
-
-    pod_metadata = k8s.V1ObjectMeta()
-
-    # CPU/generic pod specification
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
-    full_pod_spec = k8s.V1Pod(metadata=pod_metadata, spec=pod_spec)
+    full_pod_spec = k8s.V1Pod(metadata=k8s.V1ObjectMeta(), spec=pod_spec)
 
     # 1 - Prepare input
     prepare_inputs = KubernetesPodOperator(
@@ -60,7 +54,7 @@ def pic():
         full_pod_spec=full_pod_spec,
 
         cmds=['/pic/scripts/prepare_inputs.sh'],
-        arguments=params['inputlist']
+        arguments="{{ params['inputlist'] }}"
     )
     
     # 2a - Launch PIC simulations
@@ -68,8 +62,7 @@ def pic():
         task_id='pic-worker',
         full_pod_spec=full_pod_spec,
 
-    #    cmds = ['/pic/sputniPIC'],
-        cmds = ['/bin/sh', '-c', 'echo /pic/sputniPIC $0 && /usr/bin/sleep 10']
+        cmds = ['/pic/sputniPIC'],
     ).expand(arguments=list_inputs())
      
     # 2b - Track the progress of all simulations
@@ -78,7 +71,7 @@ def pic():
         full_pod_spec=full_pod_spec,
         
         cmds=['/pic/scripts/tracker.py'],
-        arguments=params['inputlist'],
+        arguments="{{ params['inputlist'] }}"
         get_logs=True,
     )
    
