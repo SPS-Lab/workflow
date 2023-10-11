@@ -54,7 +54,7 @@ def pic():
         full_pod_spec=full_pod_spec,
 
         cmds=['/pic/scripts/prepare_inputs.sh'],
-        arguments="{{ params['inputlist'] }}"
+        arguments="{{ params['inputlist'] }}",
     )
     
     # 2a - Launch PIC simulations
@@ -71,7 +71,7 @@ def pic():
         full_pod_spec=full_pod_spec,
         
         cmds=['/pic/scripts/tracker.py'],
-        arguments="{{ params['inputlist'] }}"
+        arguments="{{ params['inputlist'] }}",
         get_logs=True,
     )
    
