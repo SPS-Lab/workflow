@@ -14,18 +14,34 @@ VOLUME_KEY  = 'volume-autodock'
 namespace = conf.get('kubernetes_executor', 'NAMESPACE')
 pvol_path = "/home/daniel/k3dvol/gem/"
 
-def create_pod_spec(pic_id, wtype):
+def create_pod_spec():
+        return full_pod_spec
+
+params = {
+    'inputlist': ['GEM_2D.inp', 'GEM_2D_1', 'GEM_2D_2'],
+}
+
+@task
+def list_inputs(params=None):
+    return [ [f'/data/out/{sim_name}/sim.inp'] for sim_name in params['inputlist'] ]
+    
+@dag(start_date=datetime(2021, 1, 1),
+     schedule=None,
+     catchup=False,
+     params=params)
+def pic(): 
+    import os.path
+
     volume = k8s.V1Volume(
         name=VOLUME_KEY,
         persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name=PVC_NAME),
     )
     volume_mount = k8s.V1VolumeMount(mount_path=MOUNT_PATH, name=VOLUME_KEY)
-    pod_name = "pic-" +  str(wtype) + "-" + str(pic_id)
 
     # define a generic container, which can be used for all tasks
     container = k8s.V1Container(
-        name=pod_name,
-        image='raijenki/mpik8s:picv23',
+        name='pic-container',
+        image='raijenki/mpik8s:picv50',
         working_dir=MOUNT_PATH,
 
         volume_mounts=[volume_mount],
@@ -33,61 +49,46 @@ def create_pod_spec(pic_id, wtype):
     )
 
     pod_metadata = k8s.V1ObjectMeta(name=pod_name)
+
     # CPU/generic pod specification
     pod_spec      = k8s.V1PodSpec(containers=[container], volumes=[volume])
     full_pod_spec = k8s.V1Pod(metadata=pod_metadata, spec=pod_spec)
-    return full_pod_spec
 
-params = {
-        'ninputs': 3,
-}
+    # 1 - Prepare input
+    prepare_inputs = KubernetesPodOperator(
+        task_id='prepare_inputs',
+        full_pod_spec=full_pod_spec,
 
-@task
-def list_inputs(params=None):
-    return [f'pic-worker-{i}' for i in range(0, int(params['ninputs']))]
-
-@dag(start_date=datetime(2021, 1, 1),
-     schedule=None,
-     catchup=False,
-     params=params)
-def pic(): 
-    import os.path
+        cmds=['/pic/scripts/prepare_inputs.sh'],
+        arguments=params['inputlist']
+    )
     
+    # 2a - Launch PIC simulations
+    picexec = KubernetesPodOperator.partial(
+        task_id='pic-worker',
+        full_pod_spec=full_pod_spec,
+
+        cmds = ['/pic/sputnicPIC'],
+    ).expand(arguments=list_inputs())
+     
+    # 2b - Track the progress of all simulations
+    tracker = KubernetesPodOperator(
+        task_id='tracker',
+        full_pod_spec=full_pod_spec,
+        
+        cmds=['/pic/scripts/tracker.py'],
+        get_logs=True,
+     )
+   
+    # 3 - end of the workflow
     end_exec = KubernetesPodOperator(
         task_id='end_exec',
-        full_pod_spec=create_pod_spec(0, 'end'),
-        cmds = ['sleep 10'],
+        full_pod_spec=full_pod_spec,
+
+        cmds = ['/usr/bin/sleep', '10'],
     )
-
-    tracker = KubernetesPodOperator(
-            task_id='tracker',
-            full_pod_spec=create_pod_spec(0, 'tracker'),
-            cmds=['python3', '/home/tracker.py'],
-            get_logs=True,
-            image_pull_policy='Always',
-         )
-
-
-    prepare_inputs = KubernetesPodOperator(
-            task_id='prepare_inputs',
-            full_pod_spec=create_pod_spec(0, 'prepare-inputs'),
-            cmds=['python3'],
-            image_pull_policy='Always',
-            arguments=['/home/preparation.py'],
-        )
-    
-    picexec = KubernetesPodOperator.partial(
-        task_id=f'pic-worker',
-        full_pod_spec=create_pod_spec(0, 'worker'),
-        image_pull_policy='Always',
-        cmds = ['/bin/bash', '-c', '/home/exec_pic.sh'],
-    ).expand(name=list_inputs())
-   
-    # prepare_inputs >> picexec
-    # prepare_inputs >> tracker
-
-
-    #d = exec_pic.expand(batch_label=ninputs_array)
     
     prepare_inputs >> [picexec, tracker] >> end_exec
-pic()
+
+
+ pic()
