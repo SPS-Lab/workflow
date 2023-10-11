@@ -23,7 +23,7 @@ params = {
 
 @task
 def list_inputs(params=None):
-    return [ [f'/data/out/{sim_name}/sim.inp'] for sim_name in params['inputlist'] ]
+    return [ [f'out/{sim_name}/sim.inp'] for sim_name in params['inputlist'] ]
     
 @dag(start_date=datetime(2021, 1, 1),
      schedule=None,
