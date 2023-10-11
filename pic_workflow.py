@@ -78,6 +78,7 @@ def pic():
         full_pod_spec=full_pod_spec,
         
         cmds=['/pic/scripts/tracker.py'],
+        arguments=params['inputlist'],
         get_logs=True,
     )
    
